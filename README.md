@@ -1,7 +1,14 @@
 # Low-Code-App-Extensions
 An Interactive Automation script to import, export and do some general edits to the low code apps of a DataMiner system.
 
+![Overview](Documentation/LCAEditor.gif)
+
 ## Features
+
+- [Edit](#edit)
+- [Export](#export)
+- [Import](#import)
+- [Delete](#delete)
 
 ### Edit
 You can edit some general information about the low code app.
@@ -9,14 +16,22 @@ You can edit some general information about the low code app.
 1. Description
 1. Sections
 
+![Editor](Documentation/EditorDialog.png)
+
 ### Export
 There's the option to export apps. It is highly recommended enable the option to export as a package, as this will try and collect all the used custom operator and action script and include them in the package.
+
+![Editor](Documentation/ExportDialog.png)
 
 ### Import 
 This is used to import apps that have not been exported as a package. These will not include any of the custom scripts.
 
+![Editor](Documentation/ImportDialog.png)
+
 ### Delete
 You can delete apps as well.
+
+![Editor](Documentation/DeleteDialog.png)
 
 ## About DataMiner
 
