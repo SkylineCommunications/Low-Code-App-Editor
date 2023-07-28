@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using System.Xml;
-using Newtonsoft.Json.Linq;
-
-namespace Low_Code_App_Editor_1
+﻿namespace Low_Code_App_Editor_1
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.IO.Compression;
+    using System.Linq;
+    using System.Xml;
+    using System.Xml.Serialization;
+    using Newtonsoft.Json.Linq;
+
     public static class Extensions
     {
         /// <summary>
@@ -99,6 +97,7 @@ namespace Low_Code_App_Editor_1
                     scriptProperties.AddRange(item.FindPropertiesWithName(propertyName));
                 }
             }
+
             return scriptProperties;
         }
     }

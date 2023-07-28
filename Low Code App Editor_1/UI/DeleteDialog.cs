@@ -1,8 +1,8 @@
 ﻿namespace Low_Code_App_Editor_1.UI
 {
+    using System;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Utils.InteractiveAutomationScript;
-    using System;
 
     public class DeleteDialog : Dialog<StackPanel>
     {

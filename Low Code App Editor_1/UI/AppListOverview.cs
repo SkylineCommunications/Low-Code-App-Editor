@@ -1,14 +1,7 @@
 ﻿namespace Low_Code_App_Editor_1.UI
 {
-    using System;
-    using System.IO;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Utils.InteractiveAutomationScript;
-    using Low_Code_App_Editor_1.LCA;
 
     public class AppListOverview : Dialog<StackPanel>
     {
