@@ -396,3 +396,21 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Default Automation Script gitignore 
+**/obj/*
+.vs/*
+packages/*
+**/.svn
+_git2_*
+**/StyleCop.Cache
+# solution user option files
+*.suo
+# protocol checklist template
+**/*.dotx
+# Temporary MS Office file (opened document)
+~$*
+# visual studio project user setting
+**/*.csproj.user
+# resharper solution user settings
+*sln.DotSettings.user
