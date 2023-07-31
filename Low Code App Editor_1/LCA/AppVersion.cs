@@ -14,6 +14,12 @@
 
     public class AppVersion : DMADynamicApplication
     {
+        private static readonly string[] OptionsWithScripts = new[]
+        {
+            "Operator",
+            "Data source",
+        };
+
         [JsonIgnore]
         public string Path { get; set; }
 
@@ -35,7 +41,7 @@
                 scripts.AddRange(pageJson.FindPropertiesWithName("Script").Select(token => token.Value<string>()));
             }
 
-            return scripts;
+            return scripts.Distinct().ToList();
         }
 
         private List<string> FindScriptsInChild(DMAGenericInterfaceQuery query)
@@ -64,12 +70,12 @@
                 return null;
             }
 
-            if(option.ID != "Operator")
+            if (option.Type != "string")
             {
                 return null;
             }
 
-            if (option.Type != "string")
+            if (!OptionsWithScripts.Contains(option.ID))
             {
                 return null;
             }
