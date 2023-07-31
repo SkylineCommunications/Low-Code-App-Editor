@@ -57,6 +57,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InstallDependencies", "InstallDependencies", "{D39B2672-38D7-4896-AD3A-EB89173AE56A}"
 	ProjectSection(SolutionItems) = preProject
 		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\AlphaFS.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\AlphaFS.dll
+		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\Newtonsoft.Json.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\Newtonsoft.Json.dll
 		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\Skyline.DataMiner.Core.AppPackageInstaller.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\Skyline.DataMiner.Core.AppPackageInstaller.dll
 		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\System.IO.Compression.ZipFile.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\System.IO.Compression.ZipFile.dll
 	EndProjectSection
