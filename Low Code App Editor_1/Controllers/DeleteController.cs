@@ -10,8 +10,27 @@
         {
             foreach(var app in apps)
             {
-                Directory.Delete(app.Path, true);
+                DeleteDirectory(app.Path);
             }
+        }
+
+        private static void DeleteDirectory(string directory)
+        {
+            var files = Directory.GetFiles(directory);
+            var dirs = Directory.GetDirectories(directory);
+
+            foreach (string file in files)
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+            }
+
+            foreach (string dir in dirs)
+            {
+                DeleteDirectory(dir);
+            }
+
+            Directory.Delete(directory);
         }
     }
 }
