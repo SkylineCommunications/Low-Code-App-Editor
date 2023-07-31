@@ -49,16 +49,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Low Code App Editor_1", "Lo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{1D59D27B-15B4-4A27-91E1-DFD9936A92EC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Low Code App Editor", "Low Code App Editor", "{9E8FB8D0-6336-4E48-A9AD-119867EA3A4B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Low Code App Editor", "Low Code App Editor", "{6A28D6B5-3F57-4506-89C3-BFD47374AEF1}"
 	ProjectSection(SolutionItems) = preProject
-		CompanionFiles\Skyline DataMiner\Low Code App Editor\Install.xml = CompanionFiles\Skyline DataMiner\Low Code App Editor\Install.xml
+		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\Install.xml = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\Install.xml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InstallDependencies", "InstallDependencies", "{A939003B-F664-4327-8228-B63DD1B67325}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InstallDependencies", "InstallDependencies", "{D39B2672-38D7-4896-AD3A-EB89173AE56A}"
 	ProjectSection(SolutionItems) = preProject
-		CompanionFiles\Skyline DataMiner\Low Code App Editor\InstallDependencies\AlphaFS.dll = CompanionFiles\Skyline DataMiner\Low Code App Editor\InstallDependencies\AlphaFS.dll
-		CompanionFiles\Skyline DataMiner\Low Code App Editor\InstallDependencies\Skyline.DataMiner.Core.AppPackageInstaller.dll = CompanionFiles\Skyline DataMiner\Low Code App Editor\InstallDependencies\Skyline.DataMiner.Core.AppPackageInstaller.dll
-		CompanionFiles\Skyline DataMiner\Low Code App Editor\InstallDependencies\System.IO.Compression.ZipFile.dll = CompanionFiles\Skyline DataMiner\Low Code App Editor\InstallDependencies\System.IO.Compression.ZipFile.dll
+		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\AlphaFS.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\AlphaFS.dll
+		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\Skyline.DataMiner.Core.AppPackageInstaller.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\Skyline.DataMiner.Core.AppPackageInstaller.dll
+		CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\System.IO.Compression.ZipFile.dll = CompanionFiles\Skyline DataMiner\Documents\Low Code App Editor\InstallDependencies\System.IO.Compression.ZipFile.dll
 	EndProjectSection
 EndProject
 Global
@@ -82,8 +82,8 @@ Global
 		{ED57ECA4-8E1E-43F0-BD0B-B71A8D4616E7} = {DB2259B3-B809-42B5-B33A-C59F856ACC3E}
 		{62D1391A-A14A-432A-A213-8F2CB0F7C38E} = {ED57ECA4-8E1E-43F0-BD0B-B71A8D4616E7}
 		{1D59D27B-15B4-4A27-91E1-DFD9936A92EC} = {41249306-4B25-4501-A41B-87A7AF1BD8E2}
-		{9E8FB8D0-6336-4E48-A9AD-119867EA3A4B} = {1D59D27B-15B4-4A27-91E1-DFD9936A92EC}
-		{A939003B-F664-4327-8228-B63DD1B67325} = {9E8FB8D0-6336-4E48-A9AD-119867EA3A4B}
+		{6A28D6B5-3F57-4506-89C3-BFD47374AEF1} = {1D59D27B-15B4-4A27-91E1-DFD9936A92EC}
+		{D39B2672-38D7-4896-AD3A-EB89173AE56A} = {6A28D6B5-3F57-4506-89C3-BFD47374AEF1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D9937D7C-6B0A-4F0C-AF55-E4E2030C5BEF}
