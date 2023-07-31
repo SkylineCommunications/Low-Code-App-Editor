@@ -1,4 +1,7 @@
 # Low-Code-App-Extensions
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SkylineCommunications_Low-Code-App-Extensions&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SkylineCommunications_Low-Code-App-Extensions)
+
 An Interactive Automation script to import, export and do some general edits to the low code apps of a DataMiner system.
 
 ![Overview](Documentation/LCAEditor.gif)
