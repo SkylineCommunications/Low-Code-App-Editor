@@ -44,9 +44,12 @@
 
         public AppVersion LatestVersion
         {
-            get => Versions.Where(version => !version.IsDraft)
-                .OrderByDescending(version => version.Version)
-                .FirstOrDefault();
+            get => Versions.FirstOrDefault(version => version.Version == Settings.PublicVersion);
+        }
+
+        public AppVersion LatestDraftVersion
+        {
+            get => Versions.FirstOrDefault(version => version.Version == Settings.DraftVersion);
         }
     }
 }

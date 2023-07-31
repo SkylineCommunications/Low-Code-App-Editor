@@ -108,8 +108,10 @@ internal class Script
 namespace Install_1.LCA
 {
 	using System;
+	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
+	using Newtonsoft.Json.Linq;
 	using Skyline.DataMiner.Net.AppPackages;
 
 	// Summary:
@@ -146,8 +148,21 @@ namespace Install_1.LCA
 
 			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
 			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
+			var existingAppsNames = GetAppNames(existingApps);
 			foreach (var app in apps)
 			{
+				// Check if the name of the app already exists
+				var appName = GetAppName(app);
+				int counter = 0;
+				var newName = appName;
+				while (existingAppsNames.Contains(newName))
+				{
+					counter++;
+					newName = $"{appName} ({counter})";
+				}
+
+				SetAppName(app, newName);
+
 				if(existingApps.Contains(Path.GetFileName(app)))
 				{
 					// Generate a new GUID for the app
@@ -194,6 +209,58 @@ namespace Install_1.LCA
 			}
 		}
 
+		private string[] GetAppNames(IEnumerable<string> existingApps)
+		{
+			var names = new List<string>();
+			foreach (var app in existingApps)
+			{
+				names.Add(GetAppName(app));
+			}
+
+			return names.Where(name => name != null).ToArray();
+		}
+
+		private string GetAppName(string appId)
+		{
+			try
+			{
+				// Get public version
+				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
+				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
+
+				// Get name
+				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
+				var name = JObject.Parse(config)["Name"].Value<string>();
+
+				return name;
+			}
+			catch(Exception ex)
+			{
+				Log($"Could not get name of app with ID: {appId}\nException: \n{ex}");
+				return null;
+			}
+		}
+
+		private void SetAppName(string appId, string name)
+		{
+			try
+			{
+				// Get public version
+				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
+				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
+
+				// set name
+				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
+				var json = JObject.Parse(config);
+				json["Name"] = name;
+				System.IO.File.WriteAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"), json.ToString());
+			}
+			catch (Exception)
+			{
+				Log($"Could not set name of app with ID: {appId}, to {name}");
+			}
+		}
+
 		// Summary:
 		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
 		//     The message will also be shown during installation with the DataMiner Application
@@ -208,6 +275,7 @@ namespace Install_1.LCA
 		}
 	}
 }
+
 ]]>
 			</Value>
 			<!--<Param type="debug">true</Param>-->
@@ -217,6 +285,7 @@ namespace Install_1.LCA
 			<Param type="ref">AlphaFS.dll</Param>
 			<Param type="ref">System.IO.Compression.ZipFile.dll</Param>
 			<Param type="ref">Skyline.DataMiner.Core.AppPackageInstaller.dll</Param>
+			<Param type="ref">Newtonsoft.Json.dll</Param>
 		</Exe>
 	</Script>
 </DMSScript>

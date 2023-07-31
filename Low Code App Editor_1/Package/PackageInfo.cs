@@ -36,8 +36,8 @@
                 AllowMultipleInstalledVersions = false,
                 LastModifiedAt = DateTime.Now,
                 MinDmaVersion = "10.0.10.0-9414",
-                DisplayName = "Low Code App Insall Package",
-                Name = "Low Code App Insall Package",
+                DisplayName = "Low Code App Install Package",
+                Name = "Low Code App Install Package",
                 Version = $"1.0.1",
             };
         }
