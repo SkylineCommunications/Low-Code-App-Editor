@@ -29,6 +29,9 @@ There's the option to export apps. It is highly recommended enable the option to
 ### Import 
 This is used to import apps that have not been exported as a package. These will not include any of the custom scripts.
 
+> **Warning**
+> If you want to import .dmapp packages, you cannot do it with this import. You'll need to use the client test tool.
+
 ![Editor](Documentation/ImportDialog.png)
 
 ### Delete
