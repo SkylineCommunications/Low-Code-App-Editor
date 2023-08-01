@@ -6,6 +6,33 @@ An Interactive Automation script to import, export and do some general edits to 
 
 ![Overview](Documentation/LCAEditor.gif)
 
+## Installation
+
+> **Warning**
+> After the install you'll need to manuelly replace on of the references.
+>
+> C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll needs to be C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll
+
+### Cloud 
+You can install the script through the catalog. 
+1. Go to the [catalog](https://catalog.dataminer.services/)
+1. Search for Low Code App Editor
+1. Press Deploy
+1. Choose the DMA you want to deploy to
+1. Press Deploy
+1. Open the Automation app on your DMA
+1. Go to the **Low Code App Editor** script
+1. Under Advanced > DLL references replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**
+
+### Manuel
+You can do a manuel install by downloading the .dmapp package file from the releases.
+1. Go to [releases](https://github.com/SkylineCommunications/Low-Code-App-Extensions/releases)
+1. Download the .dmapp package from the latest version
+1. Install the package on your DMA
+1. Open the Automation app on your DMA
+1. Go to the **Low Code App Editor** script
+1. Under Advanced > DLL references replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**
+
 ## Features
 
 - [Edit](#edit)
