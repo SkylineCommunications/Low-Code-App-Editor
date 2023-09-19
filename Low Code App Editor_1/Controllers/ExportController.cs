@@ -7,9 +7,13 @@
     using System.Linq;
     using System.Text;
     using System.Xml.Linq;
+    using Low_Code_App_Editor_1.DOM;
     using Low_Code_App_Editor_1.LCA;
     using Low_Code_App_Editor_1.Package;
     using Low_Code_App_Editor_1.UI;
+    using Skyline.DataMiner.Automation;
+    using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net.Apps.Modules;
 
     public class ExportController
     {
@@ -18,11 +22,11 @@
         public static readonly string LowCodeAppEditorPath = @"C:\Skyline DataMiner\Documents\Low Code App Editor";
         public static readonly string LowCodeAppEditorExportPath = @"C:\Skyline DataMiner\Documents\DMA_COMMON_DOCUMENTS\Low Code Apps Exports";
 
-        public static string ExportApps(IEnumerable<App> apps, ExportOptions options)
+        public static string ExportApps(IEngine engine, IEnumerable<App> apps, ExportOptions options)
         {
             if(options.ExportPackage)
             {
-                return ExportPackage(apps, options);
+                return ExportPackage(engine, apps, options);
             }
             else
             {
@@ -62,7 +66,7 @@
             return exportPath;
         }
 
-        private static string ExportPackage(IEnumerable<App> apps, ExportOptions options)
+        private static string ExportPackage(IEngine engine, IEnumerable<App> apps, ExportOptions options)
         {
             var now = DateTime.Now;
             var exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
@@ -101,6 +105,9 @@
                             scriptReferences[pair.Key].AddRange(pair.Value);
                         }
                     }
+
+                    // Add Dom definitions
+                    AddDomToArchive(engine, zip, app);
                 }
 
                 // Add custom Low Code App Installer Code
@@ -117,11 +124,13 @@
                 sb.AppendLine($"Package creation time: {now.ToString("yyyy-MM-dd HH:mm:ss")}");
                 sb.AppendLine($"---------------------------------");
                 sb.AppendLine($"File Version:");
+
                 // Add scripts
                 foreach (var file in zip.GetEntries("AppInstallContent\\Scripts"))
                 {
                     sb.AppendLine($"Script\\{Path.GetDirectoryName(file.FullName)}");
                 }
+
                 // Add Assemblies
                 foreach (var pair in scriptReferences)
                 {
@@ -130,6 +139,7 @@
                         sb.AppendLine($"Assembly\\{Path.GetDirectoryName(reference)} for automationscript:{pair.Key}");
                     }
                 }
+
                 // Add CompanionFiles
                 foreach (var file in zip.GetEntries("AppInstallContent\\CompanionFiles"))
                 {
@@ -199,6 +209,19 @@
                 }
             }
             return scriptReferences;
+        }
+
+        private static void AddDomToArchive(IEngine engine, ZipArchive zip, App app)
+        {
+            var moduleSettingsHelper = new ModuleSettingsHelper(engine.SendSLNetMessages);
+            var domExporter = new DomExporter(moduleSettingsHelper, engine.SendSLNetMessages);
+
+            var domModuleIds = app.LatestVersion.GetUsedDomModules();
+            engine.GenerateInformation($"Found {domModuleIds.Count} modules used in app '{app.Name}'");
+            engine.GenerateInformation($"modules:\n{String.Join("\n", domModuleIds)}");
+
+            var domExport = domExporter.Export(domModuleIds, false);
+            zip.CreateEntryFromText(Path.Combine("AppInstallContent", "CompanionFiles", "DOM", "module.json"), domExport);
         }
     }
 

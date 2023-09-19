@@ -20,6 +20,11 @@
             "Data source",
         };
 
+        private static readonly string[] OptionsWithDomModules = new[]
+        {
+            "Module",
+        };
+
         [JsonIgnore]
         public string Path { get; set; }
 
@@ -44,6 +49,19 @@
             return scripts.Distinct().ToList();
         }
 
+        public List<string> GetUsedDomModules()
+        {
+            var modules = new List<string>();
+
+            // Search through GQI queries for dom modules
+            DataPool.ForEach(query =>
+            {
+                modules.AddRange(FindDomModulesInChild(((DMADashboardQueryData)query).Query));
+            });
+
+            return modules.Distinct().ToList();
+        }
+
         private List<string> FindScriptsInChild(DMAGenericInterfaceQuery query)
         {
             var scripts = new List<string>();
@@ -61,6 +79,25 @@
 
             scripts.AddRange(FindScriptsInChild(query.Child));
             return scripts;
+        }
+
+        private List<string> FindDomModulesInChild(DMAGenericInterfaceQuery query)
+        {
+            var modules = new List<string>();
+            if (query == null || query.Options == null)
+            {
+                return modules;
+            }
+
+            foreach (var option in query.Options)
+            {
+                var module = FindDomModulesInOption(option);
+                if (module != null)
+                    modules.Add(module);
+            }
+
+            modules.AddRange(FindDomModulesInChild(query.Child));
+            return modules;
         }
 
         private string FindScriptInOption(DMAGenericInterfaceQueryChosenOption option)
@@ -89,6 +126,34 @@
                 return Convert.ToString(json["ScriptName"]);
             }
             catch(Exception)
+            {
+                return null;
+            }
+        }
+
+        private string FindDomModulesInOption(DMAGenericInterfaceQueryChosenOption option)
+        {
+            if (option == null)
+            {
+                return null;
+            }
+
+            if (option.Type != "string")
+            {
+                return null;
+            }
+
+            if (!OptionsWithDomModules.Contains(option.ID))
+            {
+                return null;
+            }
+
+            try
+            {
+                var module = Convert.ToString(option.Value.Value);
+                return module;
+            }
+            catch (Exception)
             {
                 return null;
             }

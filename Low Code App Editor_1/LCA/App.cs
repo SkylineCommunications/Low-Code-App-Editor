@@ -1,5 +1,6 @@
 ﻿namespace Low_Code_App_Editor_1.LCA
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -13,6 +14,10 @@
         {
             Path = path;
 
+            // Load general settings file
+            var settingsFile = File.ReadAllText(System.IO.Path.Combine(path, "App.info.json"));
+            Settings = JsonConvert.DeserializeObject<DMAApplicationVersionInfo>(settingsFile);
+
             // Load version history
             var versions = new string[0];
             if (Directory.Exists(path))
@@ -20,18 +25,31 @@
                 versions = Directory.GetDirectories(path);
             }
 
-            foreach (string versionDirectory in versions)
+            // Load latest public version
+            if(Settings.PublicVersion > 0)
             {
+                var versionDirectory = versions.FirstOrDefault(x => x.Contains($"version_{Settings.PublicVersion}"));
                 var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
-                if (!File.Exists(versionPath)) continue;
-                var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
-                version.Path = System.IO.Path.Combine(versionDirectory, "App.config.json");
-                Versions.Add(version);
+                if (File.Exists(versionPath))
+                {
+                    var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
+                    version.Path = versionPath;
+                    Versions.Add(version);
+                }
             }
 
-            // Load general settings file
-            var settingsFile = File.ReadAllText(System.IO.Path.Combine(path, "App.info.json"));
-            Settings = JsonConvert.DeserializeObject<DMAApplicationVersionInfo>(settingsFile);
+            // Load latest draft version
+            if(Settings.DraftVersion > 0)
+            {
+                var versionDirectory = versions.FirstOrDefault(x => x.Contains($"version_{Settings.DraftVersion}"));
+                var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
+                if (File.Exists(versionPath))
+                {
+                    var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
+                    version.Path = versionPath;
+                    Versions.Add(version);
+                }
+            }
         }
 
         public string Path { get; }
@@ -41,6 +59,44 @@
         public List<AppVersion> Versions { get; } = new List<AppVersion>();
 
         public DMAApplicationVersionInfo Settings { get; }
+
+        public string Name
+        {
+            get
+            {
+                if(LatestVersion != null)
+                {
+                    return LatestVersion.Name;
+                }
+                else if(LatestDraftVersion != null)
+                {
+                    return LatestDraftVersion.Name;
+                }
+                else
+                {
+                    throw new NullReferenceException("No Draft or Public version found.");
+                }
+            }
+        }
+
+        public string Description
+        {
+            get
+            {
+                if (LatestVersion != null)
+                {
+                    return LatestVersion.Description;
+                }
+                else if (LatestDraftVersion != null)
+                {
+                    return LatestDraftVersion.Description;
+                }
+                else
+                {
+                    throw new NullReferenceException("No Draft or Public version found.");
+                }
+            }
+        }
 
         public AppVersion LatestVersion
         {

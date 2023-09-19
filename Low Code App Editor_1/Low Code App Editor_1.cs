@@ -53,11 +53,8 @@ namespace Low_Code_App_Editor_1
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
-    using System.Security.Policy;
-    using System.Text;
     using Low_Code_App_Editor_1.Controllers;
     using Low_Code_App_Editor_1.LCA;
     using Low_Code_App_Editor_1.UI;
@@ -110,7 +107,7 @@ namespace Low_Code_App_Editor_1
         private void InitUiData(IEngine engine)
         {
             InitOverview(engine);
-            InitExport();
+            InitExport(engine);
             InitImport();
             InitEditor();
             InitEditorSections();
@@ -141,7 +138,7 @@ namespace Low_Code_App_Editor_1
             };
         }
 
-        private void InitExport()
+        private void InitExport(IEngine engine)
         {
             export.BackButton.Pressed += (sender, e) =>
             {
@@ -150,7 +147,7 @@ namespace Low_Code_App_Editor_1
             export.ExportButton.Pressed += (sender, e) =>
             {
                 var selection = export.Apps.CheckedOptions;
-                var file = ExportController.ExportApps(apps.Where(app => app.LatestVersion != null).Where(app => selection.Contains(app.LatestVersion.Name)), ExportOptions.FromDialog(export));
+                var file = ExportController.ExportApps(engine, apps.Where(app => app.LatestVersion != null).Where(app => selection.Contains(app.LatestVersion.Name)), ExportOptions.FromDialog(export));
                 export.Status.Text = $"Exported apps as {file}";
             };
         }
