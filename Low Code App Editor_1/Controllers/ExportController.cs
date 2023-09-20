@@ -84,6 +84,7 @@
                 zip.CreateEntryFromText("AppInfo.xml", XmlConvert.SerializeObject(PackageInfo.FromApp()));
                 zip.CreateEntryFromText(Path.Combine("AppInstallContent", "DeploymentActions.xml"), "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<AppPackageDeploymentActions>\r\n  <DefaultProtocolVisios />\r\n  <ProductionProtocols />\r\n  <TemplatesToPreserve>\r\n    <AlarmTemplates />\r\n    <InformationTemplates />\r\n    <TrendTemplates />\r\n  </TemplatesToPreserve>\r\n</AppPackageDeploymentActions>");
 
+                var domModuleIds = new List<string>();
                 foreach(var app in apps)
                 {
                     // Add the app as CompanionFiles
@@ -107,8 +108,11 @@
                     }
 
                     // Add Dom definitions
-                    AddDomToArchive(engine, zip, app);
+                    domModuleIds.AddRange(app.LatestVersion.GetUsedDomModules());
                 }
+
+                // Add DOM modules
+                AddDomToArchive(engine, zip, domModuleIds, options);
 
                 // Add custom Low Code App Installer Code
                 zip.CreateEntryFromDirectory(LowCodeAppEditorPath, "Scripts");
@@ -161,12 +165,17 @@
 
         private static void AddAppToArchive(ZipArchive zip, App app, ExportOptions options)
         {
+            zip = zip ?? throw new ArgumentNullException(nameof(zip));
+            app = app ?? throw new ArgumentNullException(nameof(app));
+            options = options ?? throw new ArgumentNullException(nameof(options));
+
             if (!options.IncludeVersions)
             {
                 // Just include the general .json file and the latest version
                 zip.CreateEntryFromDirectory(app.Path, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID), false);
                 zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{app.LatestVersion.Version} "), Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, $"version_{app.LatestVersion.Version}"), true);
-                zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{app.LatestDraftVersion.Version} "), Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestDraftVersion.ID, $"version_{app.LatestDraftVersion.Version}"), true);
+                if(app.LatestDraftVersion != null)
+                    zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{app.LatestDraftVersion.Version} "), Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestDraftVersion.ID, $"version_{app.LatestDraftVersion.Version}"), true);
             }
             else
             {
@@ -211,16 +220,12 @@
             return scriptReferences;
         }
 
-        private static void AddDomToArchive(IEngine engine, ZipArchive zip, App app)
+        private static void AddDomToArchive(IEngine engine, ZipArchive zip, IEnumerable<string> domModuleIds, ExportOptions options)
         {
             var moduleSettingsHelper = new ModuleSettingsHelper(engine.SendSLNetMessages);
             var domExporter = new DomExporter(moduleSettingsHelper, engine.SendSLNetMessages);
 
-            var domModuleIds = app.LatestVersion.GetUsedDomModules();
-            engine.GenerateInformation($"Found {domModuleIds.Count} modules used in app '{app.Name}'");
-            engine.GenerateInformation($"modules:\n{String.Join("\n", domModuleIds)}");
-
-            var domExport = domExporter.Export(domModuleIds, false);
+            var domExport = domExporter.Export(domModuleIds, options.ExportDomInstances);
             zip.CreateEntryFromText(Path.Combine("AppInstallContent", "CompanionFiles", "DOM", "module.json"), domExport);
         }
     }
@@ -231,12 +236,15 @@
 
         public bool ExportPackage { get; set; }
 
+        public bool ExportDomInstances { get; set; }
+
         public static ExportOptions FromDialog(ExportDialog dialog)
         {
             return new ExportOptions
             {
                 IncludeVersions = dialog.ExportVersions.IsChecked,
                 ExportPackage = dialog.ExportPackage.IsChecked,
+                ExportDomInstances = dialog.ExportDomInstances.IsChecked,
             };
         }
     }
