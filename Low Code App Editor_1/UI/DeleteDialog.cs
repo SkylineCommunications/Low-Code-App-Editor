@@ -8,7 +8,7 @@
     {
         public DeleteDialog(IEngine engine) : base(engine)
         {
-            Title = "Select apps to export";
+            Title = "Select apps to delete";
             Panel.Add(Apps);
             Panel.Add(new WhiteSpace());
             Panel.Add(Navigation);
