@@ -1,8 +1,9 @@
 ﻿namespace Low_Code_App_Editor_1.Package
 {
-    using Low_Code_App_Editor_1.LCA;
     using System;
+    using System.Collections.Generic;
     using System.Xml.Serialization;
+    using Low_Code_App_Editor_1.LCA;
 
     [XmlRoot(ElementName = "AppInfo")]
     public class PackageInfo
@@ -36,10 +37,18 @@
                 AllowMultipleInstalledVersions = false,
                 LastModifiedAt = DateTime.Now,
                 MinDmaVersion = "10.0.10.0-9414",
-                DisplayName = "Low Code App Install Package",
-                Name = "Low Code App Install Package",
+                DisplayName = $"Low Code App Install Package",
+                Name = $"Low Code App Install Package",
                 Version = $"1.0.1",
             };
+        }
+
+        public static PackageInfo FromApp(App app)
+        {
+            var info = PackageInfo.FromApp();
+            info.DisplayName = $"{app.Name} App Install Pacakge";
+            info.Name = $"{app.Name} App Install Pacakge";
+            return info;
         }
     }
 }

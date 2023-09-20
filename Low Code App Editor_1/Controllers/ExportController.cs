@@ -13,6 +13,7 @@
     using Low_Code_App_Editor_1.UI;
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net.Apps.FileTime;
     using Skyline.DataMiner.Net.Apps.Modules;
 
     public class ExportController
@@ -38,6 +39,11 @@
         {
             var now = DateTime.Now;
             var exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
+            if (apps.Count() == 1)
+            {
+                // When only one app is selected we can include the app name in the package name
+                exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{apps.First().Name}_{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
+            }
 
             if (!Directory.Exists(Path.GetDirectoryName(exportPath)))
             {
@@ -69,8 +75,16 @@
         private static string ExportPackage(IEngine engine, IEnumerable<App> apps, ExportOptions options)
         {
             var now = DateTime.Now;
-            var exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
+
             var scriptReferences = new Dictionary<string, List<string>>();
+            var exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
+            if(apps.Count() == 1)
+            {
+                // When only one app is selected we can include the app name in the package name
+                exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{apps.First().Name}_{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
+            }
+
+            engine.GenerateInformation($"Export Path: {exportPath}");
 
             if (!Directory.Exists(Path.GetDirectoryName(exportPath)))
             {
@@ -80,18 +94,27 @@
             using (var fs = new FileStream(exportPath, FileMode.Create))
             using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
             {
+                engine.GenerateInformation($"Adding Package Information");
+
                 // Package Information
-                zip.CreateEntryFromText("AppInfo.xml", XmlConvert.SerializeObject(PackageInfo.FromApp()));
+                var info = apps.Count() == 1 ? PackageInfo.FromApp(apps.First()) : PackageInfo.FromApp();
+                zip.CreateEntryFromText("AppInfo.xml", XmlConvert.SerializeObject(info));
                 zip.CreateEntryFromText(Path.Combine("AppInstallContent", "DeploymentActions.xml"), "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<AppPackageDeploymentActions>\r\n  <DefaultProtocolVisios />\r\n  <ProductionProtocols />\r\n  <TemplatesToPreserve>\r\n    <AlarmTemplates />\r\n    <InformationTemplates />\r\n    <TrendTemplates />\r\n  </TemplatesToPreserve>\r\n</AppPackageDeploymentActions>");
 
                 var domModuleIds = new List<string>();
                 foreach(var app in apps)
                 {
+                    engine.GenerateInformation($"Adding App");
+
                     // Add the app as CompanionFiles
                     AddAppToArchive(zip, app, options);
 
+                    engine.GenerateInformation($"Adding Scripts");
+
                     // Add the scripts used in the App
                     var scripts = AddScriptsToArchive(zip, app);
+
+                    engine.GenerateInformation($"Adding Script dependencies");
 
                     // Add script dependencies
                     var appReferences = AddDependenciesToArchive(zip, app, scripts);
@@ -111,9 +134,11 @@
                     domModuleIds.AddRange(app.LatestVersion.GetUsedDomModules());
                 }
 
+                engine.GenerateInformation($"Adding DOM modules");
                 // Add DOM modules
                 AddDomToArchive(engine, zip, domModuleIds, options);
 
+                engine.GenerateInformation($"Adding Installer code");
                 // Add custom Low Code App Installer Code
                 zip.CreateEntryFromDirectory(LowCodeAppEditorPath, "Scripts");
             }
