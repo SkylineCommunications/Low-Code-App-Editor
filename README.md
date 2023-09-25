@@ -9,7 +9,7 @@ An Interactive Automation script to import, export and do some general edits to 
 ## Installation
 
 > **Warning**
-> After the install you'll need to manuelly replace on of the references.
+> After the install you'll need to manually replace on of the references.
 >
 > C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll needs to be C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll
 
@@ -24,8 +24,8 @@ You can install the script through the catalog.
 1. Go to the **Low Code App Editor** script
 1. Under Advanced > DLL references replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**
 
-### Manuel
-You can do a manuel install by downloading the .dmapp package file from the releases.
+### Manual
+You can do a manual install by downloading the .dmapp package file from the releases.
 1. Go to [releases](https://github.com/SkylineCommunications/Low-Code-App-Extensions/releases)
 1. Download the .dmapp package from the latest version
 1. Install the package on your DMA
