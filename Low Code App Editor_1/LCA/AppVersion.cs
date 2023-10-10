@@ -28,6 +28,9 @@
         [JsonIgnore]
         public string Path { get; set; }
 
+        [JsonIgnore]
+        public string FolderPath { get => Directory.GetParent(Path).FullName; }
+
         public List<string> GetUsedScripts()
         {
             var scripts = new List<string>();

@@ -4,6 +4,11 @@
 
     public class EditButton<T> : Button
     {
+        public EditButton(T info) : base("Edit...")
+        {
+            Info = info;
+        }
+
         public EditButton(string text, T info) : base(text)
         {
             Info = info;

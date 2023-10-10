@@ -55,9 +55,11 @@ namespace Low_Code_App_Editor_1
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+
     using Low_Code_App_Editor_1.Controllers;
     using Low_Code_App_Editor_1.LCA;
     using Low_Code_App_Editor_1.UI;
+
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Utils.InteractiveAutomationScript;
 
@@ -69,15 +71,28 @@ namespace Low_Code_App_Editor_1
     {
         public static readonly string ApplicationsDirectory = @"C:\Skyline DataMiner\applications";
 
+        private IEngine engine;
+
         private InteractiveController controller;
         private List<App> apps;
 
         private AppListOverview overview;
         private ExportDialog export;
         private ImportDialog import;
+        private DeleteDialog delete;
+
         private AppEditor editor;
         private AppEditorSections editorSections;
-        private DeleteDialog delete;
+        private AppEditorEditors editorEditors;
+        private AppEditorViewers editorViewers;
+
+        private AppEditorPages editorPages;
+        private AppEditorPagesOverview editorPagesOverview;
+        private AppEditorPagesImport editorPagesImport;
+
+        private AppEditorPanels editorPanels;
+        private AppEditorPanelsOverview editorPanelsOverview;
+        private AppEditorPanelsImport editorPanelsImport;
 
         /// <summary>
         /// The script entry point.
@@ -85,6 +100,7 @@ namespace Low_Code_App_Editor_1
         /// <param name="engine">Link with SLAutomation process.</param>
         public void Run(IEngine engine)
         {
+            this.engine = engine;
             controller = new InteractiveController(engine);
             apps = LoadApps();
 
@@ -99,9 +115,17 @@ namespace Low_Code_App_Editor_1
             overview = new AppListOverview(engine);
             export = new ExportDialog(engine);
             import = new ImportDialog(engine);
+            delete = new DeleteDialog(engine);
             editor = new AppEditor(engine);
             editorSections = new AppEditorSections(engine);
-            delete = new DeleteDialog(engine);
+            editorEditors = new AppEditorEditors(engine);
+            editorViewers = new AppEditorViewers(engine);
+            editorPages = new AppEditorPages(engine);
+            editorPagesOverview = new AppEditorPagesOverview(engine);
+            editorPagesImport = new AppEditorPagesImport(engine);
+            editorPanels = new AppEditorPanels(engine);
+            editorPanelsOverview = new AppEditorPanelsOverview(engine);
+            editorPanelsImport = new AppEditorPanelsImport(engine);
         }
 
         private void InitUiData(IEngine engine)
@@ -109,9 +133,17 @@ namespace Low_Code_App_Editor_1
             InitOverview(engine);
             InitExport(engine);
             InitImport();
+            InitDelete();
             InitEditor();
             InitEditorSections();
-            InitDelete();
+            InitEditorEditors();
+            InitEditorViewers();
+            InitEditorPages();
+            InitEditorPagesOverview(engine);
+            InitEditorPagesImport(engine);
+            InitEditorPanels();
+            InitEditorPanelsOverview(engine);
+            InitEditorPanelsImport(engine);
         }
 
         private void InitOverview(IEngine engine)
@@ -188,6 +220,30 @@ namespace Low_Code_App_Editor_1
                 editorSections.Load(editor.SelectedApp);
                 controller.ShowDialog(editorSections);
             };
+
+            editor.Editors.Pressed += (sender, e) =>
+            {
+                editorEditors.Load(editor.SelectedApp);
+                controller.ShowDialog(editorEditors);
+            };
+
+            editor.Viewers.Pressed += (sender, e) =>
+            {
+                editorViewers.Load(editor.SelectedApp);
+                controller.ShowDialog(editorViewers);
+            };
+
+            editor.Pages.Pressed += (sender, e) =>
+            {
+                editorPagesOverview.Load(editorPages, controller, editor.SelectedApp);
+                controller.ShowDialog(editorPagesOverview);
+            };
+
+            editor.Panels.Pressed += (sender, e) =>
+            {
+                editorPanelsOverview.Load(editorPanels, controller, editor.SelectedApp);
+                controller.ShowDialog(editorPanelsOverview);
+            };
         }
 
         private void InitEditorSections()
@@ -216,6 +272,152 @@ namespace Low_Code_App_Editor_1
             };
         }
 
+        private void InitEditorEditors()
+        {
+            editorEditors.Navigation.LeftButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editor);
+            };
+
+            editorEditors.Navigation.RightButton.Pressed += (sender, e) =>
+            {
+                editorEditors.Save();
+                var index = RefreshApp(editorEditors.SelectedApp);
+                editor.Load(apps[index]);
+                controller.ShowDialog(editor);
+            };
+
+            editorEditors.Editors.AddButton.Pressed += (sender, e) =>
+            {
+                var textbox = new RemoveableTextBox();
+                textbox.RemoveButton.Pressed += (s, ev) =>
+                {
+                    editorEditors.Editors.Remove(textbox);
+                };
+                editorEditors.Editors.Add(textbox);
+            };
+        }
+
+        private void InitEditorViewers()
+        {
+            editorViewers.Navigation.LeftButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editor);
+            };
+
+            editorViewers.Navigation.RightButton.Pressed += (sender, e) =>
+            {
+                editorViewers.Save();
+                var index = RefreshApp(editorViewers.SelectedApp);
+                editor.Load(apps[index]);
+                controller.ShowDialog(editor);
+            };
+
+            editorViewers.Viewers.AddButton.Pressed += (sender, e) =>
+            {
+                var textbox = new RemoveableTextBox();
+                textbox.RemoveButton.Pressed += (s, ev) =>
+                {
+                    editorViewers.Viewers.Remove(textbox);
+                };
+                editorViewers.Viewers.Add(textbox);
+            };
+        }
+
+        private void InitEditorPages()
+        {
+            editorPages.Navigation.LeftButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editorPagesOverview);
+            };
+
+            editorPages.Navigation.RightButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editorPagesOverview);
+            };
+        }
+
+        private void InitEditorPagesOverview(IEngine engine)
+        {
+            editorPagesOverview.Back.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editor);
+            };
+
+            editorPagesOverview.Import.Pressed += (sender, e) =>
+            {
+                editorPagesImport.Load(editorPagesOverview.SelectedApp, apps, engine);
+                controller.ShowDialog(editorPagesImport);
+            };
+        }
+
+        private void InitEditorPagesImport(IEngine engine)
+        {
+            editorPagesImport.Navigation.LeftButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editorPagesOverview);
+            };
+
+            editorPagesImport.Navigation.RightButton.Pressed += (sender, e) =>
+            {
+                editorPagesImport.Import(engine);
+                editorPagesOverview.Load(editorPages, controller, editorPagesOverview.SelectedApp);
+                controller.ShowDialog(editorPagesOverview);
+            };
+
+            editorPagesImport.Apps.Changed += (sender, e) =>
+            {
+                editorPagesImport.LoadPages(e.SelectedOption.Value, engine);
+            };
+        }
+
+        private void InitEditorPanels()
+        {
+            editorPanels.Navigation.LeftButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editorPanelsOverview);
+            };
+
+            editorPanels.Navigation.RightButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editorPanelsOverview);
+            };
+        }
+
+        private void InitEditorPanelsOverview(IEngine engine)
+        {
+            editorPanelsOverview.Back.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editor);
+            };
+
+            editorPanelsOverview.Import.Pressed += (sender, e) =>
+            {
+                editorPanelsImport.Load(editorPanelsOverview.SelectedApp, apps, engine);
+                controller.ShowDialog(editorPanelsImport);
+            };
+        }
+
+        private void InitEditorPanelsImport(IEngine engine)
+        {
+            editorPanelsImport.Navigation.LeftButton.Pressed += (sender, e) =>
+            {
+                controller.ShowDialog(editorPanelsOverview);
+            };
+
+            editorPanelsImport.Navigation.RightButton.Pressed += (sender, e) =>
+            {
+                editorPanelsImport.Import(engine);
+                editorPanelsOverview.Load(editorPanels, controller, editorPanelsOverview.SelectedApp);
+                controller.ShowDialog(editorPanelsOverview);
+            };
+
+            editorPanelsImport.Apps.Changed += (sender, e) =>
+            {
+                editorPanelsImport.LoadPanels(e.SelectedOption.Value, engine);
+            };
+        }
+
         private void InitDelete()
         {
             delete.Navigation.LeftButton.Pressed += (sender, e) =>
@@ -233,7 +435,7 @@ namespace Low_Code_App_Editor_1
         private int RefreshApp(App app)
         {
             var index = apps.IndexOf(app);
-            apps[index] = new App(app.Path);
+            apps[index] = new App(app.Path, engine);
             return index;
         }
 
@@ -248,7 +450,7 @@ namespace Low_Code_App_Editor_1
 
             foreach (string folder in folders)
             {
-                apps.Add(new App(folder));
+                apps.Add(new App(folder, engine));
             }
 
             return apps;

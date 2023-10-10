@@ -6,9 +6,12 @@
     {
         public AppEditorFields()
         {
+            this.Add("ID", Id);
             this.Add("Name", Name);
             this.Add("Description", Description);
         }
+
+        public ILabel Id { get; } = new Label();
 
         public ITextBox Name { get; } = new TextBox();
 

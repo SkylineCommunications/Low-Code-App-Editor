@@ -10,6 +10,7 @@
     {
         public static void Load(this AppEditor editor, App app)
         {
+            editor.Form.Id.Text = app.LatestVersion.ID;
             editor.Form.Name.Text = app.LatestVersion.Name;
             editor.Form.Description.Text = app.LatestVersion.Description;
             editor.SelectedApp = app;

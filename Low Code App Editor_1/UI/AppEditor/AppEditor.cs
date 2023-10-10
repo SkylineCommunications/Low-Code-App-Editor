@@ -1,4 +1,6 @@
-﻿namespace Low_Code_App_Editor_1.UI
+﻿// Ignore Spelling: App
+
+namespace Low_Code_App_Editor_1.UI
 {
     using Low_Code_App_Editor_1.LCA;
     using Skyline.DataMiner.Automation;
@@ -12,6 +14,10 @@
 
             this.Panel.Add(Form);
             this.Panel.Add(Sections);
+            this.Panel.Add(Editors);
+            this.Panel.Add(Viewers);
+            this.Panel.Add(Pages);
+            this.Panel.Add(Panels);
             this.Panel.Add(new WhiteSpace());
             this.Panel.Add(NavigationButtons);
         }
@@ -19,6 +25,14 @@
         public AppEditorFields Form { get; } = new AppEditorFields();
 
         public IButton Sections { get; } = new Button("Sections...");
+
+        public IButton Editors { get; } = new Button("Editors...");
+
+        public IButton Viewers { get; } = new Button("Viewers...");
+
+        public IButton Pages { get; } = new Button("Pages...");
+
+        public IButton Panels { get; } = new Button("Panels...");
 
         public DoubleButton NavigationButtons { get; } = new DoubleButton("Back", "Save");
 

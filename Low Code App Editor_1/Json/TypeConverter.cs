@@ -102,7 +102,7 @@ namespace Low_Code_App_Editor_1.Json
         /// <param name="serializer">The JsonSerializer used to serialize the object.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override bool CanRead => true;

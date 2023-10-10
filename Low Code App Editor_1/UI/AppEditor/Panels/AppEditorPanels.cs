@@ -7,18 +7,18 @@ namespace Low_Code_App_Editor_1.UI
     using Skyline.DataMiner.Automation;
     using Skyline.DataMiner.Utils.InteractiveAutomationScript;
 
-    public class AppEditorSections : Dialog<StackPanel>
+    public class AppEditorPanels : Dialog<StackPanel>
     {
-        public AppEditorSections(IEngine engine) : base(engine)
+        public AppEditorPanels(IEngine engine) : base(engine)
         {
-            Title = "Edit Sections";
+            Title = "Edit Panels";
 
-            Panel.Add(Sections);
+            Panel.Add(PanelFields);
             Panel.Add(new WhiteSpace());
             Panel.Add(Navigation);
         }
 
-        public AddableStackPanel Sections { get; } = new AddableStackPanel();
+        public IFormPanel PanelFields { get; } = new FormPanel();
 
         public DoubleButton Navigation { get; } = new DoubleButton("Back", "Save");
 
