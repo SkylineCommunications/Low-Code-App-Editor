@@ -4,7 +4,7 @@
 
 An Interactive Automation script to import, export and do some general edits to the low code apps of a DataMiner system.
 
-![Overview](Documentation/LCAEditor.gif)
+![Overview](Documentation/LCAEditor_1_0_0_8.gif)
 
 ## Installation
 
@@ -41,12 +41,20 @@ You can do a manual install by downloading the .dmapp package file from the rele
 - [Delete](#delete)
 
 ### Edit
-You can edit some general information about the low code app.
+You can edit some general information about the low code app. You can import pages/panels from other apps on the system here as well.
 1. Name
 1. Description
 1. Sections
+1. Editors
+1. Viewers
+1. Pages
+1. Panels
 
-![Editor](Documentation/EditorDialog.png)
+> **Warning**
+> When adding users to the editors/viewers list there is no check if the users that you add actually exists.
+>
+
+![Editor](Documentation/EditorDialog_1_0_0_8.gif)
 
 ### Export
 There's the option to export apps. It is highly recommended enable the option to export as a package, as this will try and collect all the used custom operator and action script and include them in the package. As of version 1.0.0.5 it now searching through the GQI queries and looks for used dom modules and includes them in the package as well. From version 1.0.0.6 it's possible to include dom instances in the package as well by enabling the option.
