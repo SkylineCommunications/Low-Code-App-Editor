@@ -39,10 +39,6 @@ namespace Low_Code_App_Editor_1.Controllers
 
         public static void LoadPanels(this AppEditorPanelsImport editor, App app, IEngine engine)
         {
-            engine.GenerateInformation(app.Name);
-            engine.GenerateInformation(Convert.ToString(app.LatestVersion.Panels.Length));
-            engine.GenerateInformation(String.Join(", ", app.LatestVersion.Panels.Select(panel => panel.Name)));
-
             editor.Panels.Options.Clear();
             editor.Panels.Options.AddRange(app.LatestVersion.Panels.Select(panel => Option.Create(panel.Name, panel)));
         }

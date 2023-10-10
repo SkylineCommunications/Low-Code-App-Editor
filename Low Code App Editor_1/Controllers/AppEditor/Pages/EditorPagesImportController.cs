@@ -40,10 +40,6 @@ namespace Low_Code_App_Editor_1.Controllers
 
         public static void LoadPages(this AppEditorPagesImport editor, App app, IEngine engine)
         {
-            engine.GenerateInformation(app.Name);
-            engine.GenerateInformation(Convert.ToString(app.LatestVersion.Pages.Length));
-            engine.GenerateInformation(String.Join(", ", app.LatestVersion.Pages.Select(page => page.Name)));
-
             editor.Pages.Options.Clear();
             editor.Pages.Options.AddRange(app.LatestVersion.Pages.Select(page => Option.Create(page.Name, page)));
         }
