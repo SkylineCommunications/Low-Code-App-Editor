@@ -65,6 +65,25 @@
             return modules.Distinct().ToList();
         }
 
+        public List<string> GetUsedImages(string basePath = @"C:\Skyline DataMiner\Dashboards\_IMAGES")
+        {
+            var images = new List<string>();
+
+            // Search through components for images
+            foreach(var pageInfo in Pages)
+            {
+                var pageRaw = File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{pageInfo.ID}.dmadb.json"));
+                var page = JsonConvert.DeserializeObject<DMADashboardConfig>(pageRaw);
+                foreach(var component in page.Components.Where(comp => comp.Type == "image"))
+                {
+                    var imageData = JObject.Parse(JsonConvert.SerializeObject(component.InputData));
+                    images.Add(System.IO.Path.Combine(basePath, imageData.SelectToken("image")["name"].Value<string>()));
+                }
+            }
+
+            return images;
+        }
+
         private List<string> FindScriptsInChild(DMAGenericInterfaceQuery query)
         {
             var scripts = new List<string>();

@@ -64,6 +64,7 @@ dd/mm/2021	1.0.0.1		XXX, Skyline	Initial version
 
 using System;
 using Install_1.DOM;
+using Install_1.Images;
 using Install_1.LCA;
 using Skyline.AppInstaller;
 using Skyline.DataMiner.Automation;
@@ -99,6 +100,9 @@ internal class Script
 
             LcaInstaller lcaInstaller = new LcaInstaller(context, installer.Log);
 			lcaInstaller.InstallDefaultContent();
+
+            ImageInstaller imageInstaller = new ImageInstaller(context, installer.Log);
+            imageInstaller.InstallDefaultContent();
 		}
 		catch (Exception e)
 		{
@@ -152,10 +156,14 @@ namespace Install_1.LCA
 			Log("Low Code App Installation");
 
 			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
+			Log($"Installing {apps.Length} app(s)");
+			
 			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
 			var existingAppsNames = GetAppNames(existingApps);
-			foreach (var app in apps)
+			for (int i = 0; i < apps.Length; i++)
 			{
+                var app = apps[i];
+
 				// Check if the name of the app already exists
 				var appName = GetAppName(app);
 				int counter = 0;
@@ -186,6 +194,8 @@ namespace Install_1.LCA
 				{
 					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)));
 				}
+				
+				Log($"[{i + 1}/{apps.Length}] Installed '{newName}'");
 			}
 		}
 
@@ -340,6 +350,7 @@ namespace Install_1.DOM
         public void InstallDefaultContent()
         {
             Log("Installing DOM items");
+
             foreach (var exportedDomJson in Directory.GetFiles(context.AppContentPath + DOM_FOLDERPATH, "*.json"))
             {
                 Log("Installing " + exportedDomJson);
@@ -590,6 +601,74 @@ namespace Install_1.DOM
             SerializationInfo info,
             StreamingContext context) : base(info, context)
         {
+        }
+    }
+}
+
+//---------------------------------
+// Images\ImageInstaller.cs
+//---------------------------------
+namespace Install_1.Images
+{
+	using System;
+	using System.Collections.Generic;
+	using System.IO;
+	using System.Linq;
+
+	using Newtonsoft.Json.Linq;
+
+	using Skyline.DataMiner.Net.AppPackages;
+
+	public class ImageInstaller
+    {
+        private const string Images_FOLDERPATH = @"CompanionFiles\Images";
+        private const string Images_Directory = @"C:\Skyline DataMiner\Dashboards\_IMAGES";
+
+        private readonly AppInstallContext context;
+        private readonly Action<string> logMethod;
+
+        public ImageInstaller(AppInstallContext context, Action<string> logMethod)
+        {
+            // Null checks still required / valid input data check
+            this.context = context;
+            this.logMethod = logMethod;
+        }
+
+        // Summary:
+        //     Installs all provided images
+        //     in the AppContent of the package on the DMS.
+        public void InstallDefaultContent()
+        {
+            Log("Low Code App Images Installation");
+
+			// Check if images folder exists
+			if (!Directory.Exists(Images_Directory))
+            {
+			    Log("C:\\Skyline DataMiner\\Dashboards\\_IMAGES directory does not exists, creating it.");
+                Directory.CreateDirectory(Images_Directory);
+            }
+
+			var images = Directory.GetFiles(context.AppContentPath + Images_FOLDERPATH);
+			Log($"Installing {images.Length} image(s).");
+            for(int i = 0; i < images.Length; i++)
+            {
+                var image = images[i];
+                File.Copy(image, Path.Combine(Images_Directory, Path.GetFileName(image)));
+				Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
+			}
+		}
+
+        // Summary:
+        //     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+        //     The message will also be shown during installation with the DataMiner Application
+        //     Package Installer from the Skyline TaskBar Utility.
+        //
+        // Parameters:
+        //   message:
+        //     A message you want to log or show during installation.
+        public void Log(string message)
+        {
+            logMethod(message);
         }
     }
 }]]>
