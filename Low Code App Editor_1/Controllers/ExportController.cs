@@ -267,7 +267,10 @@
 
 		private static void AddImagesToArchive(ZipArchive zip, List<string> images)
 		{
-			foreach(var image in images)
+			var imageFolder = Path.Combine("AppInstallContent", "CompanionFiles", "Images") + "/"; // Slash to indicate it's a directory
+			zip.CreateEntry(imageFolder);
+
+			foreach (var image in images)
 			{
 				zip.CreateEntryFromFile(image, Path.Combine("AppInstallContent", "CompanionFiles", "Images", Path.GetFileName(image)));
 			}
