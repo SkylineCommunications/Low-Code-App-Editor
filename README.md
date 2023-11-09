@@ -57,7 +57,20 @@ You can edit some general information about the low code app. You can import pag
 ![Editor](Documentation/EditorDialog_1_0_0_8.gif)
 
 ### Export
-There's the option to export apps. It is highly recommended enable the option to export as a package, as this will try and collect all the used custom operator and action script and include them in the package. As of version 1.0.0.5 it now searching through the GQI queries and looks for used dom modules and includes them in the package as well. From version 1.0.0.6 it's possible to include dom instances in the package as well by enabling the option.
+There's the option to export apps. It is highly recommended enable the option to export as a package, as this will try and collect all the used custom operator and action script and include them in the package. 
+
+As of version 1.0.0.5 it now searching through the GQI queries and looks for used dom modules and includes them in the package as well. 
+
+From version 1.0.0.6 it's possible to include dom instances in the package as well by enabling the option.
+
+From version 1.0.0.9 the used images are included in the package as well.
+
+#### Overview of included items
+ - Custom Operators
+ - Configured Action scripts
+ - Dependencies of the used scripts
+ - DOM Modules
+ - Images
 
 > [!NOTE]  
 > When exporting an app from one dma to another make sure the versions match. For example the GQI versions.
