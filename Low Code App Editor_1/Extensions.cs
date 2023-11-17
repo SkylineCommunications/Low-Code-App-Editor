@@ -7,7 +7,10 @@
     using System.Linq;
     using System.Xml;
     using System.Xml.Serialization;
-    using Newtonsoft.Json.Linq;
+
+	using Low_Code_App_Editor_1.Xml;
+
+	using Newtonsoft.Json.Linq;
 
     public static class Extensions
     {
@@ -107,7 +110,7 @@
         public static string SerializeObject<T>(T obj)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(T));
-            using (var sww = new StringWriter())
+            using (var sww = new StringWriterEncoded())
             {
                 using (XmlWriter writer = new XmlTextWriter(sww) { Formatting = System.Xml.Formatting.Indented })
                 {
