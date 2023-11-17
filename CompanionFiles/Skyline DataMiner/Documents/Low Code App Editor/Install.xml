@@ -653,8 +653,16 @@ namespace Install_1.Images
             for(int i = 0; i < images.Length; i++)
             {
                 var image = images[i];
-                File.Copy(image, Path.Combine(Images_Directory, Path.GetFileName(image)));
-				Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
+                var path = Path.Combine(Images_Directory, Path.GetFileName(image));
+				if (File.Exists(path))
+				{
+					Log($"[{i + 1}/{images.Length}] '{image}' already exists, ignoring this image.");
+                }
+                else
+                {
+					File.Copy(image, path);
+					Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
+				}
 			}
 		}
 
