@@ -25,7 +25,7 @@ namespace Low_Code_App_Editor_1.Controllers
         {
             editor.SelectedApp = selectedApp;
             editor.Apps.Options.Clear();
-            editor.Apps.Options.AddRange(apps.Select(app => Option.Create(app.Name, app)));
+            editor.Apps.Options.AddRange(apps.Select(app => Option.Create($"[{app.LatestVersion.ID}] - {app.Name}", app)));
 
             var defaultSelected = editor.Apps.Options.FirstOrDefault();
             if(defaultSelected == null)
