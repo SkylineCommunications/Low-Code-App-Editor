@@ -31,26 +31,32 @@
             if(Settings.PublicVersion > 0)
             {
                 var versionDirectory = versions.FirstOrDefault(x => x.Contains($"version_{Settings.PublicVersion}"));
-                var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
-                if (File.Exists(versionPath))
+                if (!String.IsNullOrEmpty(versionDirectory))
                 {
-                    var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
-                    version.Path = versionPath;
-                    Versions.Add(version);
-                }
+					var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
+					if (File.Exists(versionPath))
+					{
+						var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
+						version.Path = versionPath;
+						Versions.Add(version);
+					}
+				}
             }
 
             // Load latest draft version
             if(Settings.DraftVersion > 0)
             {
                 var versionDirectory = versions.FirstOrDefault(x => x.Contains($"version_{Settings.DraftVersion}"));
-                var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
-                if (File.Exists(versionPath))
+                if (!String.IsNullOrEmpty(versionDirectory))
                 {
-                    var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
-                    version.Path = versionPath;
-                    Versions.Add(version);
-                }
+					var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
+					if (File.Exists(versionPath))
+					{
+						var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), new TypeConverter());
+						version.Path = versionPath;
+						Versions.Add(version);
+					}
+				}
             }
         }
 
