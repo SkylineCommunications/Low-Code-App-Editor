@@ -2,7 +2,7 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SkylineCommunications_Low-Code-App-Extensions&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SkylineCommunications_Low-Code-App-Extensions)
 
-An Interactive Automation script to import, export and do some general edits to the low code apps of a DataMiner system.
+An interactive Automation script to import, export, and do some general edits to the low-code apps of a DataMiner System.
 
 ![Overview](Documentation/LCAEditor_1_0_0_8.gif)
 
@@ -13,25 +13,25 @@ An Interactive Automation script to import, export and do some general edits to 
 >
 > C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll needs to be C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll
 
-### Cloud 
+### Catalog 
 You can install the script through the catalog. 
-1. Go to the [catalog](https://catalog.dataminer.services/)
-1. Search for Low Code App Editor
-1. Press Deploy
-1. Choose the DMA you want to deploy to
-1. Press Deploy
-1. Open the Automation app on your DMA
-1. Go to the **Low Code App Editor** script
-1. Under Advanced > DLL references replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**
+1. Go to the [catalog](https://catalog.dataminer.services/).
+1. Search for "Low Code App Editor".
+1. Click *Deploy*.
+1. Select the DMA you want to deploy to.
+1. Click *Deploy*.
+1. Open the Automation app on your DMA.
+1. Go to the **Low Code App Editor** script.
+1. Under *Advanced* > *DLL references*, replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**.
 
 ### Manual
 You can do a manual install by downloading the .dmapp package file from the releases.
-1. Go to [releases](https://github.com/SkylineCommunications/Low-Code-App-Extensions/releases)
-1. Download the .dmapp package from the latest version
-1. Install the package on your DMA
-1. Open the Automation app on your DMA
-1. Go to the **Low Code App Editor** script
-1. Under Advanced > DLL references replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**
+1. Go to [releases](https://github.com/SkylineCommunications/Low-Code-App-Extensions/releases).
+1. Download the .dmapp package from the latest version.
+1. Install the package on your DMA.
+1. Open the Automation app on your DMA.
+1. Go to the **Low Code App Editor** script.
+1. Under *Advanced* > *DLL references*, replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**.
 
 ## Features
 
@@ -41,7 +41,7 @@ You can do a manual install by downloading the .dmapp package file from the rele
 - [Delete](#delete)
 
 ### Edit
-You can edit some general information about the low code app. You can import pages/panels from other apps on the system here as well.
+You can edit some general information about the low-code app. You can import pages/panels from other apps in the system here as well.
 1. Name
 1. Description
 1. Sections
@@ -51,29 +51,29 @@ You can edit some general information about the low code app. You can import pag
 1. Panels
 
 > **Warning**
-> When adding users to the editors/viewers list there is no check if the users that you add actually exists.
+> When you add users to the editors/viewers list, there is no check if the users that you add actually exist.
 >
 
 ![Editor](Documentation/EditorDialog_1_0_0_8.gif)
 
 ### Export
-There's the option to export apps. It is highly recommended enable the option to export as a package, as this will try and collect all the used custom operator and action script and include them in the package. 
+It is possible to export apps. We highly recommend enabling the option to export as a package, as this will try and collect all the used custom operators and action scripts and include them in the package. 
 
-As of version 1.0.0.5 it now searching through the GQI queries and looks for used dom modules and includes them in the package as well. 
+As of version 1.0.0.5, this script will also search through the GQI queries to look for used DOM modules and include them in the package as well. 
 
-From version 1.0.0.6 it's possible to include dom instances in the package as well by enabling the option.
+From version 1.0.0.6 onwards, you can enable an option to also include DOM instances in the package.
 
-From version 1.0.0.9 the used images are included in the package as well.
+From version 1.0.0.9 onwards, the used images are included in the package as well.
 
 #### Overview of included items
- - Custom Operators
- - Configured Action scripts
+ - Custom operators
+ - Configured action scripts
  - Dependencies of the used scripts
- - DOM Modules
+ - DOM modules
  - Images
 
 > [!NOTE]  
-> When exporting an app from one dma to another make sure the versions match. For example the GQI versions.
+> When exporting an app from one DMA to another, make sure the versions match (for example the GQI versions).
 
 ![Editor](Documentation/ExportDialog.png)
 
@@ -81,7 +81,7 @@ From version 1.0.0.9 the used images are included in the package as well.
 This is used to import apps that have not been exported as a package. These will not include any of the custom scripts.
 
 > **Warning**
-> If you want to import .dmapp packages, you cannot do it with this import. You'll need to use the client test tool.
+> If you want to import .dmapp packages, you cannot do it with this import. You will need to use the client test tool.
 
 ![Editor](Documentation/ImportDialog.png)
 
@@ -101,7 +101,7 @@ With DataMiner, there are no restrictions to what data users can access.
 Data sources may reside on premises, in the cloud, or in a hybrid setup.
 
 A unique catalog of 7000+ connectors already exist. 
-In addition, you can leverage DataMiner Development Packages to build you own connectors (also known as "protocols" or "drivers").
+In addition, you can leverage DataMiner Development Packages to build your own connectors (also known as "protocols" or "drivers").
 
 > **Note**
 > See also: [About DataMiner](https://aka.dataminer.services/about-dataminer).
