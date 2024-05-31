@@ -11,7 +11,13 @@
             Panel.Add(Apps);
             // Panel.Add(AddButton);
             Panel.Add(new WhiteSpace());
-            Panel.Add(new StackPanel(Direction.Horizontal) { Refresh, Import, Export, Delete, });
+            Panel.Add(new StackPanel(Direction.Horizontal)
+            {
+                Refresh,
+                //Import,
+                Export,
+                Delete,
+            });
         }
 
         public FormPanel Apps { get; } = new FormPanel();

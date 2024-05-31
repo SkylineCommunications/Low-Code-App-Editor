@@ -10,13 +10,13 @@
         {
             Title = "Select apps to export";
 
-            ExportPackage.IsChecked = true;
+            // ExportPackage.IsChecked = true;
 
             Panel.Add(Apps, 0, 0);
             Panel.Add(new Label("Include Version History:"), 1, 0);
             Panel.Add(ExportVersions, 1, 1);
-            Panel.Add(new Label("Export as Package:"), 2, 0);
-            Panel.Add(ExportPackage, 2, 1);
+            // Panel.Add(new Label("Export as Package:"), 2, 0);
+            // Panel.Add(ExportPackage, 2, 1);
             Panel.Add(new Label("Export Dom Instances:"), 3, 0);
             Panel.Add(ExportDomInstances, 3, 1);
             Panel.Add(new WhiteSpace(), 4, 0);
@@ -29,7 +29,7 @@
 
         public ICheckBox ExportVersions { get; } = new CheckBox();
 
-        public ICheckBox ExportPackage { get; } = new CheckBox();
+        // public ICheckBox ExportPackage { get; } = new CheckBox();
 
         public ICheckBox ExportDomInstances { get; } = new CheckBox();
 

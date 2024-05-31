@@ -63,9 +63,12 @@ dd/mm/2021	1.0.0.1		XXX, Skyline	Initial version
 */
 
 using System;
+
 using Install_1.DOM;
 using Install_1.Images;
 using Install_1.LCA;
+using Install_1.Themes;
+
 using Skyline.AppInstaller;
 using Skyline.DataMiner.Automation;
 using Skyline.DataMiner.Net.AppPackages;
@@ -94,15 +97,18 @@ internal class Script
 			var installer = new AppInstaller(Engine.SLNetRaw, context);
 			installer.InstallDefaultContent();
 
-            // Custom installation logic can be added here for each individual install package.
-            DomInstaller domInstaller = new DomInstaller(Engine.SLNetRaw, context, installer.Log);
-            domInstaller.InstallDefaultContent();
+			// Custom installation logic can be added here for each individual install package.
+			DomInstaller domInstaller = new DomInstaller(Engine.SLNetRaw, context, installer.Log);
+			domInstaller.InstallDefaultContent();
 
-            LcaInstaller lcaInstaller = new LcaInstaller(context, installer.Log);
+			LcaInstaller lcaInstaller = new LcaInstaller(context, installer.Log);
 			lcaInstaller.InstallDefaultContent();
 
-            ImageInstaller imageInstaller = new ImageInstaller(context, installer.Log);
-            imageInstaller.InstallDefaultContent();
+			ImageInstaller imageInstaller = new ImageInstaller(context, installer.Log);
+			imageInstaller.InstallDefaultContent();
+
+			ThemeInstaller themeInstaller = new ThemeInstaller(context, installer.Log);
+			themeInstaller.InstallDefaultContent();
 		}
 		catch (Exception e)
 		{
@@ -120,7 +126,9 @@ namespace Install_1.LCA
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
+
 	using Newtonsoft.Json.Linq;
+
 	using Skyline.DataMiner.Net.AppPackages;
 
 	// Summary:
@@ -157,12 +165,12 @@ namespace Install_1.LCA
 
 			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
 			Log($"Installing {apps.Length} app(s)");
-			
+
 			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
 			var existingAppsNames = GetAppNames(existingApps);
 			for (int i = 0; i < apps.Length; i++)
 			{
-                var app = apps[i];
+				var app = apps[i];
 
 				// Check if the name of the app already exists
 				var appName = GetAppName(app);
@@ -176,14 +184,14 @@ namespace Install_1.LCA
 
 				SetAppName(app, newName);
 
-				if(existingApps.Contains(Path.GetFileName(app)))
+				if (existingApps.Contains(Path.GetFileName(app)))
 				{
 					// Generate a new GUID for the app
 					var oldId = Path.GetFileName(app);
 					var newId = Guid.NewGuid().ToString();
 					var destPath = Path.Combine(ApplicationsDirectory, newId);
 					CopyFolder(app, destPath);
-					foreach(var versionPath in Directory.GetDirectories(destPath))
+					foreach (var versionPath in Directory.GetDirectories(destPath))
 					{
 						var configPath = Path.Combine(versionPath, "App.config.json");
 						var file = File.ReadAllText(configPath);
@@ -194,7 +202,7 @@ namespace Install_1.LCA
 				{
 					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)));
 				}
-				
+
 				Log($"[{i + 1}/{apps.Length}] Installed '{newName}'");
 			}
 		}
@@ -242,6 +250,12 @@ namespace Install_1.LCA
 				// Get public version
 				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
 				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
+				
+				// If public is not available grab draft version
+				if(pulicVersion <= 0)
+				{
+					pulicVersion = JObject.Parse(info)["DraftVersion"].Value<int>();
+				}
 
 				// Get name
 				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
@@ -249,7 +263,7 @@ namespace Install_1.LCA
 
 				return name;
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Log($"Could not get name of app with ID: {appId}\nException: \n{ex}");
 				return null;
@@ -296,313 +310,313 @@ namespace Install_1.LCA
 //---------------------------------
 namespace Install_1.DOM
 {
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.Serialization;
-    using System.Text;
+	using System;
+	using System.IO;
+	using System.Linq;
+	using System.Runtime.Serialization;
+	using System.Text;
 
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Serialization;
 
 	using Skyline.DataMiner.Net;
-    using Skyline.DataMiner.Net.AppPackages;
-    using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
-    using Skyline.DataMiner.Net.Apps.Modules;
-    using Skyline.DataMiner.Net.Jobs;
-    using Skyline.DataMiner.Net.LogHelpers;
-    using Skyline.DataMiner.Net.ManagerStore;
-    using Skyline.DataMiner.Net.Messages;
-    using Skyline.DataMiner.Net.Messages.SLDataGateway;
-    using Skyline.DataMiner.Net.Sections;
+	using Skyline.DataMiner.Net.AppPackages;
+	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.Apps.Modules;
+	using Skyline.DataMiner.Net.Jobs;
+	using Skyline.DataMiner.Net.LogHelpers;
+	using Skyline.DataMiner.Net.ManagerStore;
+	using Skyline.DataMiner.Net.Messages;
+	using Skyline.DataMiner.Net.Messages.SLDataGateway;
+	using Skyline.DataMiner.Net.Sections;
 
-    // Summary:
-    //     Initiates a new instance.
-    //
-    // Parameters:
-    //   connection:
-    //     SLNet raw connection. Can be obtained via Engine object.
-    //
-    //   context:
-    //     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
-    //     object is automatically provided by the Automation script.
-    public class DomInstaller
-    {
-        private const string DOM_FOLDERPATH = @"CompanionFiles\DOM\";
+	// Summary:
+	//     Initiates a new instance.
+	//
+	// Parameters:
+	//   connection:
+	//     SLNet raw connection. Can be obtained via Engine object.
+	//
+	//   context:
+	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
+	//     object is automatically provided by the Automation script.
+	public class DomInstaller
+	{
+		private const string DOM_FOLDERPATH = @"CompanionFiles\DOM\";
 
-        private readonly AppInstallContext context;
-        private readonly Action<string> logMethod;
+		private readonly AppInstallContext context;
+		private readonly Action<string> logMethod;
 
-        private readonly DomImporter domImporter;
+		private readonly DomImporter domImporter;
 
-        public DomInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
-        {
-            // Null checks still required / valid input data check
-            this.context = context;
-            this.logMethod = logMethod;
-            domImporter = new DomImporter(connection.HandleMessages);
-            domImporter.Progress += DomImporter_Progress;
-        }
+		public DomInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
+		{
+			// Null checks still required / valid input data check
+			this.context = context;
+			this.logMethod = logMethod;
+			domImporter = new DomImporter(connection.HandleMessages);
+			domImporter.Progress += DomImporter_Progress;
+		}
 
-        // Summary:
-        //     Installs all exported DOM files from the DOM editor script
-        //     in the AppContent of the package on the DMS.
-        public void InstallDefaultContent()
-        {
-            Log("Installing DOM items");
+		// Summary:
+		//     Installs all exported DOM files from the DOM editor script
+		//     in the AppContent of the package on the DMS.
+		public void InstallDefaultContent()
+		{
+			Log("Installing DOM items");
 
-            foreach (var exportedDomJson in Directory.GetFiles(context.AppContentPath + DOM_FOLDERPATH, "*.json"))
-            {
-                Log("Installing " + exportedDomJson);
-                domImporter.Import(exportedDomJson);
-            }
-        }
+			foreach (var exportedDomJson in Directory.GetFiles(context.AppContentPath + DOM_FOLDERPATH, "*.json"))
+			{
+				Log("Installing " + exportedDomJson);
+				domImporter.Import(exportedDomJson);
+			}
+		}
 
-        // Summary:
-        //     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-        //     The message will also be shown during installation with the DataMiner Application
-        //     Package Installer from the Skyline TaskBar Utility.
-        //
-        // Parameters:
-        //   message:
-        //     A message you want to log or show during installation.
-        public void Log(string message)
-        {
-            logMethod(message);
-        }
+		// Summary:
+		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		//     The message will also be shown during installation with the DataMiner Application
+		//     Package Installer from the Skyline TaskBar Utility.
+		//
+		// Parameters:
+		//   message:
+		//     A message you want to log or show during installation.
+		public void Log(string message)
+		{
+			logMethod(message);
+		}
 
-        private void DomImporter_Progress(object sender, ItemProgressEventArgs e)
-        {
-            Log("Installed " + e.Items + " DOM item(s)");
-        }
-    }
+		private void DomImporter_Progress(object sender, ItemProgressEventArgs e)
+		{
+			Log("Installed " + e.Items + " DOM item(s)");
+		}
+	}
 
-    public class DomImporter
-    {
-        private static readonly JsonSerializer JsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
-        {
-            TypeNameHandling = TypeNameHandling.Auto,
-            ContractResolver = new DefaultContractResolver { IgnoreSerializableInterface = true },
-        });
+	public class DomImporter
+	{
+		private static readonly JsonSerializer JsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
+		{
+			TypeNameHandling = TypeNameHandling.Auto,
+			ContractResolver = new DefaultContractResolver { IgnoreSerializableInterface = true },
+		});
 
-        private readonly ModuleSettingsHelper moduleSettingsHelper;
-        private readonly Func<DMSMessage[], DMSMessage[]> sendSLNetMessages;
-        private DomHelper domHelper;
-        private ItemProgressEventArgs itemProgressEventArgs;
-        private JsonTextReader jsonTextReader;
+		private readonly ModuleSettingsHelper moduleSettingsHelper;
+		private readonly Func<DMSMessage[], DMSMessage[]> sendSLNetMessages;
+		private DomHelper domHelper;
+		private ItemProgressEventArgs itemProgressEventArgs;
+		private JsonTextReader jsonTextReader;
 
-        public DomImporter(Func<DMSMessage[], DMSMessage[]> sendSLNetMessages)
-        {
-            this.sendSLNetMessages = sendSLNetMessages ?? throw new ArgumentNullException(nameof(sendSLNetMessages));
-            moduleSettingsHelper = new ModuleSettingsHelper(sendSLNetMessages);
-        }
+		public DomImporter(Func<DMSMessage[], DMSMessage[]> sendSLNetMessages)
+		{
+			this.sendSLNetMessages = sendSLNetMessages ?? throw new ArgumentNullException(nameof(sendSLNetMessages));
+			moduleSettingsHelper = new ModuleSettingsHelper(sendSLNetMessages);
+		}
 
-        public event EventHandler<ItemProgressEventArgs> Progress;
+		public event EventHandler<ItemProgressEventArgs> Progress;
 
-        public void Import(string path)
-        {
-            InitProgressCounter();
+		public void Import(string path)
+		{
+			InitProgressCounter();
 
-            try
-            {
-                using (var reader = new Reader(path))
-                {
-                    jsonTextReader = reader.JsonTextReader;
-                    jsonTextReader.Read(); // start array
-                    while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
-                    {
-                        ImportModule();
-                        jsonTextReader.Read(); // end object
-                    }
-                }
-            }
-            catch (CrudFailedException e)
-            {
-                throw new DomEditorException(String.Join("\n", e.TraceData.ErrorData), e);
-            }
-            catch (IOException e)
-            {
-                throw new DomEditorException(e.Message, e);
-            }
-            catch (JsonException e)
-            {
-                throw new DomEditorException("File has an invalid structure.", e);
-            }
-        }
+			try
+			{
+				using (var reader = new Reader(path))
+				{
+					jsonTextReader = reader.JsonTextReader;
+					jsonTextReader.Read(); // start array
+					while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
+					{
+						ImportModule();
+						jsonTextReader.Read(); // end object
+					}
+				}
+			}
+			catch (CrudFailedException e)
+			{
+				throw new DomEditorException(String.Join("\n", e.TraceData.ErrorData), e);
+			}
+			catch (IOException e)
+			{
+				throw new DomEditorException(e.Message, e);
+			}
+			catch (JsonException e)
+			{
+				throw new DomEditorException("File has an invalid structure.", e);
+			}
+		}
 
-        private void Import<T>(ICrudHelperComponent<T> crudHelperComponent, FilterElement<T> equalityFilter, T dataType)
-            where T : DataType
-        {
-            bool exists = crudHelperComponent.Read(equalityFilter).Any();
+		private void Import<T>(ICrudHelperComponent<T> crudHelperComponent, FilterElement<T> equalityFilter, T dataType)
+			where T : DataType
+		{
+			bool exists = crudHelperComponent.Read(equalityFilter).Any();
 
-            if (exists)
-            {
-                crudHelperComponent.Update(dataType);
-            }
-            else
-            {
-                crudHelperComponent.Create(dataType);
-            }
+			if (exists)
+			{
+				crudHelperComponent.Update(dataType);
+			}
+			else
+			{
+				crudHelperComponent.Create(dataType);
+			}
 
-            IncrementProgressCounter(1);
-        }
+			IncrementProgressCounter(1);
+		}
 
-        private void ImportDomBehaviorDefinitions()
-        {
-            jsonTextReader.Read();
-            jsonTextReader.Read();
-            while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
-            {
-                var behaviorDefinition = JsonSerializer.Deserialize<DomBehaviorDefinition>(jsonTextReader);
-                Import(
-                    domHelper.DomBehaviorDefinitions,
-                    DomBehaviorDefinitionExposers.Id.Equal(behaviorDefinition.ID),
-                    behaviorDefinition);
-            }
-        }
+		private void ImportDomBehaviorDefinitions()
+		{
+			jsonTextReader.Read();
+			jsonTextReader.Read();
+			while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
+			{
+				var behaviorDefinition = JsonSerializer.Deserialize<DomBehaviorDefinition>(jsonTextReader);
+				Import(
+					domHelper.DomBehaviorDefinitions,
+					DomBehaviorDefinitionExposers.Id.Equal(behaviorDefinition.ID),
+					behaviorDefinition);
+			}
+		}
 
-        private void ImportDomDefinitions()
-        {
-            jsonTextReader.Read();
-            jsonTextReader.Read();
-            while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
-            {
-                var domDefinition = JsonSerializer.Deserialize<DomDefinition>(jsonTextReader);
-                Import(domHelper.DomDefinitions, DomDefinitionExposers.Id.Equal(domDefinition.ID), domDefinition);
-            }
-        }
+		private void ImportDomDefinitions()
+		{
+			jsonTextReader.Read();
+			jsonTextReader.Read();
+			while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
+			{
+				var domDefinition = JsonSerializer.Deserialize<DomDefinition>(jsonTextReader);
+				Import(domHelper.DomDefinitions, DomDefinitionExposers.Id.Equal(domDefinition.ID), domDefinition);
+			}
+		}
 
-        private void ImportDomTemplates()
-        {
-            jsonTextReader.Read();
-            jsonTextReader.Read();
-            while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
-            {
-                var domTemplate = JsonSerializer.Deserialize<DomTemplate>(jsonTextReader);
-                Import(domHelper.DomTemplates, DomTemplateExposers.Id.Equal(domTemplate.ID), domTemplate);
-            }
-        }
+		private void ImportDomTemplates()
+		{
+			jsonTextReader.Read();
+			jsonTextReader.Read();
+			while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
+			{
+				var domTemplate = JsonSerializer.Deserialize<DomTemplate>(jsonTextReader);
+				Import(domHelper.DomTemplates, DomTemplateExposers.Id.Equal(domTemplate.ID), domTemplate);
+			}
+		}
 
-        private void ImportDomInstances()
-        {
-            jsonTextReader.Read();
-            jsonTextReader.Read();
-            while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
-            {
-                var domInstance = JsonSerializer.Deserialize<DomInstance>(jsonTextReader);
-                Import(domHelper.DomInstances, DomInstanceExposers.Id.Equal(domInstance.ID), domInstance);
-            }
-        }
+		private void ImportDomInstances()
+		{
+			jsonTextReader.Read();
+			jsonTextReader.Read();
+			while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
+			{
+				var domInstance = JsonSerializer.Deserialize<DomInstance>(jsonTextReader);
+				Import(domHelper.DomInstances, DomInstanceExposers.Id.Equal(domInstance.ID), domInstance);
+			}
+		}
 
-        private void ImportModule()
-        {
-            jsonTextReader.Read(); // property name
-            jsonTextReader.Read(); // start object
-            var moduleSettings = JsonSerializer.Deserialize<ModuleSettings>(jsonTextReader);
-            ImportModuleSettings(moduleSettings);
-            domHelper = new DomHelper(sendSLNetMessages, moduleSettings.ModuleId);
+		private void ImportModule()
+		{
+			jsonTextReader.Read(); // property name
+			jsonTextReader.Read(); // start object
+			var moduleSettings = JsonSerializer.Deserialize<ModuleSettings>(jsonTextReader);
+			ImportModuleSettings(moduleSettings);
+			domHelper = new DomHelper(sendSLNetMessages, moduleSettings.ModuleId);
 
-            ImportSectionDefinitions();
-            ImportDomBehaviorDefinitions();
-            ImportDomDefinitions();
-            ImportDomTemplates();
-            ImportDomInstances();
-        }
+			ImportSectionDefinitions();
+			ImportDomBehaviorDefinitions();
+			ImportDomDefinitions();
+			ImportDomTemplates();
+			ImportDomInstances();
+		}
 
-        private void ImportModuleSettings(ModuleSettings moduleSettings)
-        {
-            Import(
-                moduleSettingsHelper.ModuleSettings,
-                ModuleSettingsExposers.ModuleId.Equal(moduleSettings.ModuleId),
-                moduleSettings);
-        }
+		private void ImportModuleSettings(ModuleSettings moduleSettings)
+		{
+			Import(
+				moduleSettingsHelper.ModuleSettings,
+				ModuleSettingsExposers.ModuleId.Equal(moduleSettings.ModuleId),
+				moduleSettings);
+		}
 
-        private void ImportSectionDefinitions()
-        {
-            jsonTextReader.Read();
-            jsonTextReader.Read();
-            while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
-            {
-                var sectionDefinition = JsonSerializer.Deserialize<CustomSectionDefinition>(jsonTextReader);
-                Import(
-                    domHelper.SectionDefinitions,
-                    SectionDefinitionExposers.ID.Equal(sectionDefinition.ID),
-                    sectionDefinition);
-            }
-        }
+		private void ImportSectionDefinitions()
+		{
+			jsonTextReader.Read();
+			jsonTextReader.Read();
+			while (jsonTextReader.Read() && jsonTextReader.TokenType == JsonToken.StartObject)
+			{
+				var sectionDefinition = JsonSerializer.Deserialize<CustomSectionDefinition>(jsonTextReader);
+				Import(
+					domHelper.SectionDefinitions,
+					SectionDefinitionExposers.ID.Equal(sectionDefinition.ID),
+					sectionDefinition);
+			}
+		}
 
-        private void InitProgressCounter()
-        {
-            itemProgressEventArgs = new ItemProgressEventArgs(0);
-            Progress?.Invoke(this, itemProgressEventArgs);
-        }
+		private void InitProgressCounter()
+		{
+			itemProgressEventArgs = new ItemProgressEventArgs(0);
+			Progress?.Invoke(this, itemProgressEventArgs);
+		}
 
-        private void IncrementProgressCounter(int items)
-        {
-            itemProgressEventArgs.Items += items;
-            Progress?.Invoke(this, itemProgressEventArgs);
-        }
+		private void IncrementProgressCounter(int items)
+		{
+			itemProgressEventArgs.Items += items;
+			Progress?.Invoke(this, itemProgressEventArgs);
+		}
 
-        private sealed class Reader : IDisposable
-        {
-            private readonly FileStream fileStream;
-            private readonly StreamReader streamReader;
+		private sealed class Reader : IDisposable
+		{
+			private readonly FileStream fileStream;
+			private readonly StreamReader streamReader;
 
-            public Reader(string path)
-            {
-                try
-                {
-                    fileStream = new FileStream(path, FileMode.Open);
-                    streamReader = new StreamReader(fileStream, Encoding.UTF8);
-                    JsonTextReader = new JsonTextReader(streamReader);
-                    JsonTextReader.SupportMultipleContent = true;
-                }
-                catch
-                {
-                    Dispose();
-                    throw;
-                }
-            }
+			public Reader(string path)
+			{
+				try
+				{
+					fileStream = new FileStream(path, FileMode.Open);
+					streamReader = new StreamReader(fileStream, Encoding.UTF8);
+					JsonTextReader = new JsonTextReader(streamReader);
+					JsonTextReader.SupportMultipleContent = true;
+				}
+				catch
+				{
+					Dispose();
+					throw;
+				}
+			}
 
-            public JsonTextReader JsonTextReader { get; }
+			public JsonTextReader JsonTextReader { get; }
 
-            public void Dispose()
-            {
-                ((IDisposable)JsonTextReader)?.Dispose();
-                streamReader?.Dispose();
-                fileStream?.Dispose();
-            }
-        }
-    }
+			public void Dispose()
+			{
+				((IDisposable)JsonTextReader)?.Dispose();
+				streamReader?.Dispose();
+				fileStream?.Dispose();
+			}
+		}
+	}
 
-    public class ItemProgressEventArgs : EventArgs
-    {
-        public ItemProgressEventArgs(int items) => Items = items;
+	public class ItemProgressEventArgs : EventArgs
+	{
+		public ItemProgressEventArgs(int items) => Items = items;
 
-        public int Items { get; internal set; }
-    }
+		public int Items { get; internal set; }
+	}
 
-    [Serializable]
-    public class DomEditorException : Exception
-    {
-        public DomEditorException()
-        {
-        }
+	[Serializable]
+	public class DomEditorException : Exception
+	{
+		public DomEditorException()
+		{
+		}
 
-        public DomEditorException(string message) : base(message)
-        {
-        }
+		public DomEditorException(string message) : base(message)
+		{
+		}
 
-        public DomEditorException(string message, Exception inner) : base(message, inner)
-        {
-        }
+		public DomEditorException(string message, Exception inner) : base(message, inner)
+		{
+		}
 
-        protected DomEditorException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
-        {
-        }
-    }
+		protected DomEditorException(
+			SerializationInfo info,
+			StreamingContext context) : base(info, context)
+		{
+		}
+	}
 }
 
 //---------------------------------
@@ -620,72 +634,192 @@ namespace Install_1.Images
 	using Skyline.DataMiner.Net.AppPackages;
 
 	public class ImageInstaller
-    {
-        private const string Images_FOLDERPATH = @"CompanionFiles\Images";
-        private const string Images_Directory = @"C:\Skyline DataMiner\Dashboards\_IMAGES";
+	{
+		private const string Images_FOLDERPATH = @"CompanionFiles\Images";
+		private const string Images_Directory = @"C:\Skyline DataMiner\Dashboards\_IMAGES";
 
-        private readonly AppInstallContext context;
-        private readonly Action<string> logMethod;
+		private readonly AppInstallContext context;
+		private readonly Action<string> logMethod;
 
-        public ImageInstaller(AppInstallContext context, Action<string> logMethod)
-        {
-            // Null checks still required / valid input data check
-            this.context = context;
-            this.logMethod = logMethod;
-        }
+		public ImageInstaller(AppInstallContext context, Action<string> logMethod)
+		{
+			// Null checks still required / valid input data check
+			this.context = context;
+			this.logMethod = logMethod;
+		}
 
-        // Summary:
-        //     Installs all provided images
-        //     in the AppContent of the package on the DMS.
-        public void InstallDefaultContent()
-        {
-            Log("Low Code App Images Installation");
+		// Summary:
+		//     Installs all provided images
+		//     in the AppContent of the package on the DMS.
+		public void InstallDefaultContent()
+		{
+			Log("Low Code App Images Installation");
 
 			// Check if images folder exists
 			if (!Directory.Exists(Images_Directory))
-            {
-			    Log("C:\\Skyline DataMiner\\Dashboards\\_IMAGES directory does not exists, creating it.");
-                Directory.CreateDirectory(Images_Directory);
-            }
+			{
+				Log("C:\\Skyline DataMiner\\Dashboards\\_IMAGES directory does not exists, creating it.");
+				Directory.CreateDirectory(Images_Directory);
+			}
 
 			var images = Directory.GetFiles(context.AppContentPath + Images_FOLDERPATH);
 			Log($"Installing {images.Length} image(s).");
-            for(int i = 0; i < images.Length; i++)
-            {
-                var image = images[i];
-                var path = Path.Combine(Images_Directory, Path.GetFileName(image));
+			for (int i = 0; i < images.Length; i++)
+			{
+				var image = images[i];
+				var path = Path.Combine(Images_Directory, Path.GetFileName(image));
 				if (File.Exists(path))
 				{
 					Log($"[{i + 1}/{images.Length}] '{image}' already exists, ignoring this image.");
-                }
-                else
-                {
+				}
+				else
+				{
 					File.Copy(image, path);
 					Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
 				}
 			}
 		}
 
-        // Summary:
-        //     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-        //     The message will also be shown during installation with the DataMiner Application
-        //     Package Installer from the Skyline TaskBar Utility.
-        //
-        // Parameters:
-        //   message:
-        //     A message you want to log or show during installation.
-        public void Log(string message)
-        {
-            logMethod(message);
-        }
-    }
+		// Summary:
+		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		//     The message will also be shown during installation with the DataMiner Application
+		//     Package Installer from the Skyline TaskBar Utility.
+		//
+		// Parameters:
+		//   message:
+		//     A message you want to log or show during installation.
+		public void Log(string message)
+		{
+			logMethod(message);
+		}
+	}
+}
+
+//---------------------------------
+// Images\ThemeInstaller.cs
+//---------------------------------
+namespace Install_1.Themes
+{
+	using System;
+	using System.Collections.Generic;
+	using System.IO;
+	using System.Linq;
+	using System.Security.Policy;
+
+	using Newtonsoft.Json.Linq;
+
+	using Skyline.DataMiner.Net;
+	using Skyline.DataMiner.Net.AppPackages;
+
+	public class ThemeInstaller
+	{
+		private const string Themes_Context_PATH = @"CompanionFiles\Themes\Themes.json";
+		private const string Themes_DataMiner_Path = @"C:\Skyline DataMiner\dashboards\Themes.json";
+
+		private readonly AppInstallContext context;
+		private readonly Action<string> logMethod;
+
+		public ThemeInstaller(AppInstallContext context, Action<string> logMethod)
+		{
+			// Null checks still required / valid input data check
+			this.context = context;
+			this.logMethod = logMethod;
+		}
+
+		// Summary:
+		//     Installs all provided images
+		//     in the AppContent of the package on the DMS.
+		public void InstallDefaultContent()
+		{
+			Log("Low Code App Themes Installation");
+
+			var appThemesContent = File.ReadAllText(context.AppContentPath + Themes_Context_PATH);
+			var appThemes = JObject.Parse(appThemesContent)["Themes"] as JArray;
+
+			if (appThemes.Any())
+			{
+				Log($"Found {appThemes.Count} theme(s) to install.");
+			}
+			else
+			{
+				Log("No themes found, skipping this step.");
+				return;
+			}
+
+
+			// Check if themes file exists
+			if (!File.Exists(Themes_DataMiner_Path))
+			{
+				Log("C:\\Skyline DataMiner\\dashboards\\Themes.json file does not exists, creating it.");
+				File.WriteAllText(Themes_DataMiner_Path, appThemesContent);
+				return;
+			}
+
+			Log("Parsing C:\\Skyline DataMiner\\dashboards\\Themes.json");
+			var allThemesContent = File.ReadAllText(Themes_DataMiner_Path);
+			var allThemesFull = JObject.Parse(allThemesContent);
+			var allThemes = allThemesFull["Themes"] as JArray;
+			var allThemeIds = allThemes.Select(t => t["ID"].Value<int>()).ToList();
+
+			for(int i = 0; i < appThemes.Count; i++)
+			{
+				var theme = appThemes[i];
+				var appThemeId = theme["ID"].Value<int>();
+				var appThemeName = theme["Name"].Value<string>();
+
+				var existingTheme = allThemes.FirstOrDefault(t => t["Name"].Value<string>() == appThemeName);
+				if (existingTheme != null)
+				{
+					var existingThemeId = existingTheme["ID"].Value<int>();
+					if (existingThemeId != appThemeId && allThemeIds.Exists(x => x == appThemeId))
+					{
+						var newId = allThemeIds.Max() + 1;
+						theme["ID"] = newId;
+						appThemeId = newId;
+						allThemeIds.Add(newId);
+					}
+
+					var existingThemeIndex = allThemes.IndexOf(existingTheme);
+					allThemes[existingThemeIndex] = theme;
+				}
+				else
+				{
+					if (allThemeIds.Exists(x => x == appThemeId))
+					{
+						var newId = allThemeIds.Max() + 1;
+						theme["ID"] = newId;
+						appThemeId = newId;
+						allThemeIds.Add(newId);
+					}
+					allThemes.Add(theme);
+				}
+
+				Log($"[{i + 1}/{appThemes.Count}] Installed '{appThemeName}'");
+			}
+
+			File.WriteAllText(Themes_DataMiner_Path, allThemesFull.ToString());
+		}
+
+		// Summary:
+		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		//     The message will also be shown during installation with the DataMiner Application
+		//     Package Installer from the Skyline TaskBar Utility.
+		//
+		// Parameters:
+		//   message:
+		//     A message you want to log or show during installation.
+		public void Log(string message)
+		{
+			logMethod(message);
+		}
+	}
 }]]>
 			</Value>
 			<!--<Param type="debug">true</Param>-->
 			<Message />
 			<Param type="ref">System.Transactions.dll</Param>
 			<Param type="ref">System.IO.Compression.FileSystem.dll</Param>
-			<Param type="ref">AlphaFS.dll</Param>
+			<!--<Param type="ref">AlphaFS.dll</Param>-->
 			<Param type="ref">Newtonsoft.Json.dll</Param>
 			<Param type="ref">System.IO.Compression.ZipFile.dll</Param>
 			<Param type="ref">Skyline.DataMiner.Core.AppPackageInstaller.dll</Param>

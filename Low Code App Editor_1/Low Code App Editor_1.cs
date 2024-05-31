@@ -156,7 +156,7 @@ namespace Low_Code_App_Editor_1
             };
             overview.Export.Pressed += (sender, e) =>
             {
-                export.Apps.SetOptions(apps.Where(app => app.LatestVersion != null).Select(app => app.LatestVersion.Name));
+                export.Apps.SetOptions(apps.Where(app => app.LatestVersion != null).Select(app => $"[{app.LatestVersion.ID}]\t{app.LatestVersion.Name}"));
                 controller.ShowDialog(export);
             };
             overview.Import.Pressed += (sender, e) =>
@@ -165,7 +165,7 @@ namespace Low_Code_App_Editor_1
             };
             overview.Delete.Pressed += (sender, e) =>
             {
-                delete.Apps.SetOptions(apps.Where(app => app.LatestVersion != null).Select(app => app.LatestVersion.Name));
+                delete.Apps.SetOptions(apps.Where(app => app.LatestVersion != null).Select(app => $"[{app.LatestVersion.ID}]\t{app.LatestVersion.Name}"));
                 controller.ShowDialog(delete);
             };
         }
@@ -179,7 +179,7 @@ namespace Low_Code_App_Editor_1
             export.ExportButton.Pressed += (sender, e) =>
             {
                 var selection = export.Apps.CheckedOptions;
-                var file = ExportController.ExportApps(engine, apps.Where(app => app.LatestVersion != null).Where(app => selection.Contains(app.LatestVersion.Name)), ExportOptions.FromDialog(export));
+                var file = ExportController.ExportApps(engine, apps.Where(app => app.LatestVersion != null).Where(app => selection.Contains($"[{app.LatestVersion.ID}]\t{app.LatestVersion.Name}")), ExportOptions.FromDialog(export));
                 export.Status.Text = $"Exported apps as {file}";
             };
         }
@@ -427,7 +427,7 @@ namespace Low_Code_App_Editor_1
             delete.Navigation.RightButton.Pressed += (sender, e) =>
             {
                 var selection = delete.Apps.CheckedOptions;
-                DeleteController.DeleteApps(apps.Where(app => app.LatestVersion != null).Where(app => selection.Contains(app.LatestVersion.Name)));
+                DeleteController.DeleteApps(apps.Where(app => app.LatestVersion != null).Where(app => selection.Contains($"[{app.LatestVersion.ID}]\t{app.LatestVersion.Name}")));
                 controller.ShowDialog(overview);
             };
         }

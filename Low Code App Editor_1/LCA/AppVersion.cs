@@ -1,184 +1,210 @@
 ﻿namespace Low_Code_App_Editor_1.LCA
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.IO;
-    using System.Linq;
-    using System.Security.Policy;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using Skyline.DataMiner.Net.Helper;
-    using Skyline.DataMiner.Web.Common.v1;
-    using Skyline.DataMiner.Web.Common.v1.Dashboards;
+	using System;
+	using System.Collections.Generic;
+	using System.Drawing;
+	using System.IO;
+	using System.Linq;
+	using System.Security.Policy;
 
-    public class AppVersion : DMADynamicApplication
-    {
-        private static readonly string[] OptionsWithScripts = new[]
-        {
-            "Operator",
-            "Data source",
-        };
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
 
-        private static readonly string[] OptionsWithDomModules = new[]
-        {
-            "Module",
-        };
+	using Skyline.DataMiner.Net.Helper;
+	using Skyline.DataMiner.Web.Common.v1;
+	using Skyline.DataMiner.Web.Common.v1.Dashboards;
 
-        [JsonIgnore]
-        public string Path { get; set; }
+	public class AppVersion : DMADynamicApplication
+	{
+		private static readonly string[] OptionsWithScripts = new[]
+		{
+			"Operator",
+			"Data source",
+		};
 
-        [JsonIgnore]
-        public string FolderPath { get => Directory.GetParent(Path).FullName; }
+		private static readonly string[] OptionsWithDomModules = new[]
+		{
+			"Module",
+		};
 
-        public List<string> GetUsedScripts()
-        {
-            var scripts = new List<string>();
+		[JsonIgnore]
+		public string Path { get; set; }
 
-            // Search through GQI queries for custom operators
-            DataPool.ForEach(query =>
-            {
-                scripts.AddRange(FindScriptsInChild(((DMADashboardQueryData)query).Query));
-            });
+		[JsonIgnore]
+		public string FolderPath { get => Directory.GetParent(Path).FullName; }
 
-            // Search through pages for scripts used in actions
-            foreach (var page in Pages.Select(page => page.ID))
-            {
-                var pageFile = System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{page}.dmadb.json"));
-                var pageJson = JObject.Parse(pageFile);
-                scripts.AddRange(pageJson.FindPropertiesWithName("Script").Select(token => token.Value<string>()));
-            }
+		public List<string> GetUsedScripts()
+		{
+			var scripts = new List<string>();
 
-            return scripts.Distinct().ToList();
-        }
+			// Search through GQI queries for custom operators
+			DataPool.ForEach(query =>
+			{
+				scripts.AddRange(FindScriptsInChild(((DMADashboardQueryData)query).Query));
+			});
 
-        public List<string> GetUsedDomModules()
-        {
-            var modules = new List<string>();
+			// Search through pages for scripts used in actions
+			foreach (var page in Pages.Select(page => page.ID))
+			{
+				var pageFile = System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{page}.dmadb.json"));
+				var pageJson = JObject.Parse(pageFile);
+				scripts.AddRange(pageJson.FindPropertiesWithName("Script").Select(token => token.Value<string>()));
+			}
 
-            // Search through GQI queries for dom modules
-            DataPool.ForEach(query =>
-            {
-                modules.AddRange(FindDomModulesInChild(((DMADashboardQueryData)query).Query));
-            });
+			return scripts.Distinct().ToList();
+		}
 
-            return modules.Distinct().ToList();
-        }
+		public List<string> GetUsedDomModules()
+		{
+			var modules = new List<string>();
 
-        public List<string> GetUsedImages(string basePath = @"C:\Skyline DataMiner\Dashboards\_IMAGES")
-        {
-            var images = new List<string>();
+			// Search through GQI queries for dom modules
+			DataPool.ForEach(query =>
+			{
+				modules.AddRange(FindDomModulesInChild(((DMADashboardQueryData)query).Query));
+			});
 
-            // Search through components for images
-            foreach(var pageInfo in Pages)
-            {
-                var pageRaw = File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{pageInfo.ID}.dmadb.json"));
-                var page = JsonConvert.DeserializeObject<DMADashboardConfig>(pageRaw);
-                foreach(var component in page.Components.Where(comp => comp.Type == "image"))
-                {
-                    var imageData = JObject.Parse(JsonConvert.SerializeObject(component.InputData));
-                    images.Add(System.IO.Path.Combine(basePath, imageData.SelectToken("image")["name"].Value<string>()));
-                }
-            }
+			return modules.Distinct().ToList();
+		}
 
-            return images;
-        }
+		public List<string> GetUsedImages(string basePath = @"C:\Skyline DataMiner\Dashboards\_IMAGES")
+		{
+			var images = new List<string>();
 
-        private List<string> FindScriptsInChild(DMAGenericInterfaceQuery query)
-        {
-            var scripts = new List<string>();
-            if(query == null || query.Options == null)
-            {
-                return scripts;
-            }
+			// Search through components for themes
+			foreach (var pageInfo in Pages)
+			{
+				var pageRaw = File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{pageInfo.ID}.dmadb.json"));
+				var page = JsonConvert.DeserializeObject<DMADashboardConfig>(pageRaw);
+				foreach (var component in page.Components.Where(comp => comp.Type == "image"))
+				{
+					var imageData = JObject.Parse(JsonConvert.SerializeObject(component.InputData));
+					images.Add(System.IO.Path.Combine(basePath, imageData.SelectToken("image")["name"].Value<string>()));
+				}
+			}
 
-            foreach(var option in query.Options)
-            {
-                var script = FindScriptInOption(option);
-                if(script != null)
-                    scripts.Add(script);
-            }
+			return images;
+		}
 
-            scripts.AddRange(FindScriptsInChild(query.Child));
-            return scripts;
-        }
+		public List<DMADashboardTheme> GetUsedThemes(string themesPath = @"C:\Skyline DataMiner\dashboards\Themes.json")
+		{
+			var themesRaw = File.ReadAllText(themesPath);
+			var allThemes = JsonConvert.DeserializeObject<DMADashboardThemes>(themesRaw);
 
-        private List<string> FindDomModulesInChild(DMAGenericInterfaceQuery query)
-        {
-            var modules = new List<string>();
-            if (query == null || query.Options == null)
-            {
-                return modules;
-            }
+			var themes = new List<DMADashboardTheme>();
 
-            foreach (var option in query.Options)
-            {
-                var module = FindDomModulesInOption(option);
-                if (module != null)
-                    modules.Add(module);
-            }
+			// Search through components for themes
+			foreach (var pageInfo in Pages)
+			{
+				var pageRaw = File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{pageInfo.ID}.dmadb.json"));
+				var page = JsonConvert.DeserializeObject<DMADashboardConfig>(pageRaw);
+				var foundTheme = allThemes.Themes.FirstOrDefault(x => x.Name == page.ThemeKey);
+				if(foundTheme == null)
+				{
+					continue;
+				}
 
-            modules.AddRange(FindDomModulesInChild(query.Child));
-            return modules;
-        }
+				themes.Add(foundTheme);
+			}
 
-        private string FindScriptInOption(DMAGenericInterfaceQueryChosenOption option)
-        {
-            if (option == null)
-            {
-                return null;
-            }
+			return themes;
+		}
 
-            if (option.Type != "string")
-            {
-                return null;
-            }
+		private List<string> FindScriptsInChild(DMAGenericInterfaceQuery query)
+		{
+			var scripts = new List<string>();
+			if (query == null || query.Options == null)
+			{
+				return scripts;
+			}
 
-            if (!OptionsWithScripts.Contains(option.ID))
-            {
-                return null;
-            }
+			foreach (var option in query.Options)
+			{
+				var script = FindScriptInOption(option);
+				if (script != null)
+					scripts.Add(script);
+			}
 
-            try
-            {
-                JObject json = JObject.Parse(Convert.ToString(option.Value.Value));
-                if (!json.ContainsKey("ScriptName"))
-                    return null;
+			scripts.AddRange(FindScriptsInChild(query.Child));
+			return scripts;
+		}
 
-                return Convert.ToString(json["ScriptName"]);
-            }
-            catch(Exception)
-            {
-                return null;
-            }
-        }
+		private List<string> FindDomModulesInChild(DMAGenericInterfaceQuery query)
+		{
+			var modules = new List<string>();
+			if (query == null || query.Options == null)
+			{
+				return modules;
+			}
 
-        private string FindDomModulesInOption(DMAGenericInterfaceQueryChosenOption option)
-        {
-            if (option == null)
-            {
-                return null;
-            }
+			foreach (var option in query.Options)
+			{
+				var module = FindDomModulesInOption(option);
+				if (module != null)
+					modules.Add(module);
+			}
 
-            if (option.Type != "string")
-            {
-                return null;
-            }
+			modules.AddRange(FindDomModulesInChild(query.Child));
+			return modules;
+		}
 
-            if (!OptionsWithDomModules.Contains(option.ID))
-            {
-                return null;
-            }
+		private string FindScriptInOption(DMAGenericInterfaceQueryChosenOption option)
+		{
+			if (option == null)
+			{
+				return null;
+			}
 
-            try
-            {
-                var module = Convert.ToString(option.Value.Value);
-                return module;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-    }
+			if (option.Type != "string")
+			{
+				return null;
+			}
+
+			if (!OptionsWithScripts.Contains(option.ID))
+			{
+				return null;
+			}
+
+			try
+			{
+				JObject json = JObject.Parse(Convert.ToString(option.Value.Value));
+				if (!json.ContainsKey("ScriptName"))
+					return null;
+
+				return Convert.ToString(json["ScriptName"]);
+			}
+			catch (Exception)
+			{
+				return null;
+			}
+		}
+
+		private string FindDomModulesInOption(DMAGenericInterfaceQueryChosenOption option)
+		{
+			if (option == null)
+			{
+				return null;
+			}
+
+			if (option.Type != "string")
+			{
+				return null;
+			}
+
+			if (!OptionsWithDomModules.Contains(option.ID))
+			{
+				return null;
+			}
+
+			try
+			{
+				var module = Convert.ToString(option.Value.Value);
+				return module;
+			}
+			catch (Exception)
+			{
+				return null;
+			}
+		}
+	}
 }

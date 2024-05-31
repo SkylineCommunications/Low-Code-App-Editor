@@ -13,11 +13,16 @@
 	using Low_Code_App_Editor_1.LCA;
 	using Low_Code_App_Editor_1.Package;
 	using Low_Code_App_Editor_1.UI;
+	using Low_Code_App_Editor_1.Json;
+
+	using Newtonsoft.Json;
 
 	using Skyline.DataMiner.Automation;
 	using Skyline.DataMiner.Net.AppPackages;
 	using Skyline.DataMiner.Net.Apps.FileTime;
 	using Skyline.DataMiner.Net.Apps.Modules;
+	using Skyline.DataMiner.Web.Common.v1.Dashboards;
+	using Newtonsoft.Json.Linq;
 
 	public class ExportController
 	{
@@ -25,9 +30,12 @@
 		public static readonly string DllImportPath = @"C:\Skyline DataMiner\ProtocolScripts\DllImport";
 		public static readonly string LowCodeAppEditorPath = @"C:\Skyline DataMiner\Documents\Low Code App Editor";
 		public static readonly string LowCodeAppEditorExportPath = @"C:\Skyline DataMiner\Documents\DMA_COMMON_DOCUMENTS\Low Code Apps Exports";
+		public static readonly string ThemesPath = @"C:\Skyline DataMiner\dashboards\Themes.json";
 
 		public static string ExportApps(IEngine engine, IEnumerable<App> apps, ExportOptions options)
 		{
+			return ExportPackage(engine, apps, options);
+
 			if (options.ExportPackage)
 			{
 				return ExportPackage(engine, apps, options);
@@ -106,6 +114,7 @@
 
 				var domModuleIds = new List<string>();
 				var images = new List<string>();
+				var themes = new List<DMADashboardTheme>();
 				foreach (var app in apps)
 				{
 					engine.GenerateInformation($"Adding App");
@@ -139,6 +148,9 @@
 
 					// Add Images to companion files
 					images.AddRangeUnique(app.LatestVersion.GetUsedImages());
+
+					// Add Theme
+					themes.AddRangeUnique(app.LatestVersion.GetUsedThemes());
 				}
 
 				// Add DOM modules
@@ -149,7 +161,12 @@
 				engine.GenerateInformation($"Adding Images");
 				AddImagesToArchive(zip, images);
 
+				// Add Themes
+				engine.GenerateInformation($"Adding Themes");
+				AddThemesToArchive(zip, themes);
+
 				engine.GenerateInformation($"Adding Installer code");
+
 				// Add custom Low Code App Installer Code
 				zip.CreateEntryFromDirectory(LowCodeAppEditorPath, "Scripts");
 			}
@@ -267,13 +284,36 @@
 
 		private static void AddImagesToArchive(ZipArchive zip, List<string> images)
 		{
-			var imageFolder = Path.Combine("AppInstallContent", "CompanionFiles", "Images") + "/"; // Slash to indicate it's a directory
+			var imageFolder = Path.Combine("AppInstallContent", "CompanionFiles", "Images") + "\\"; // Slash to indicate it's a directory
 			zip.CreateEntry(imageFolder);
 
 			foreach (var image in images)
 			{
 				zip.CreateEntryFromFile(image, Path.Combine("AppInstallContent", "CompanionFiles", "Images", Path.GetFileName(image)));
 			}
+		}
+
+		private static void AddThemesToArchive(ZipArchive zip, List<DMADashboardTheme> themes)
+		{
+			// Original themes
+			var themesJson = JObject.Parse(File.ReadAllText(ThemesPath));
+			var allThemes = themesJson["Themes"] as JArray;
+
+			// Create a copy of the themes object, clear all the themes out.
+			var usedThemesJson = themesJson.DeepClone();
+			var usedThemesArray = usedThemesJson["Themes"] as JArray;
+			usedThemesArray.Clear();
+
+			// Add the ones needed for the package to the cloned
+			foreach(var theme in themes)
+			{
+				var usedTheme = allThemes.First(t => t["Name"].Value<string>() == theme.Name);
+				usedThemesArray.Add(usedTheme);
+			}
+
+			var themesPath = Path.Combine("AppInstallContent", "CompanionFiles", "Themes") + "\\"; // Slash to indicate it's a directory
+			zip.CreateEntry(themesPath);
+			zip.CreateEntryFromText(Path.Combine(themesPath, "Themes.json"), usedThemesJson.ToString());
 		}
 	}
 
@@ -290,7 +330,7 @@
 			return new ExportOptions
 			{
 				IncludeVersions = dialog.ExportVersions.IsChecked,
-				ExportPackage = dialog.ExportPackage.IsChecked,
+				//ExportPackage = dialog.ExportPackage.IsChecked,
 				ExportDomInstances = dialog.ExportDomInstances.IsChecked,
 			};
 		}
