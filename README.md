@@ -8,7 +8,7 @@ An interactive Automation script to import, export, and do some general edits to
 
 ## Installation
 
-> **Warning**
+> [!WARNING]
 > After the install you'll need to manually replace on of the references.
 >
 > C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll needs to be C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll
@@ -50,7 +50,7 @@ You can edit some general information about the low-code app. You can import pag
 1. Pages
 1. Panels
 
-> **Warning**
+> [!WARNING]
 > When you add users to the editors/viewers list, there is no check if the users that you add actually exist.
 >
 
@@ -80,7 +80,7 @@ From version 1.0.0.9 onwards, the used images are included in the package as wel
 ### Import 
 This is used to import apps that have not been exported as a package. These will not include any of the custom scripts.
 
-> **Warning**
+> [!WARNING]
 > If you want to import .dmapp packages, you cannot do it with this import. You will need to use the client test tool.
 
 ![Editor](Documentation/ImportDialog.png)
@@ -103,7 +103,7 @@ Data sources may reside on premises, in the cloud, or in a hybrid setup.
 A unique catalog of 7000+ connectors already exist. 
 In addition, you can leverage DataMiner Development Packages to build your own connectors (also known as "protocols" or "drivers").
 
-> **Note**
+> [!NOTE]
 > See also: [About DataMiner](https://aka.dataminer.services/about-dataminer).
 
 ## About Skyline Communications
