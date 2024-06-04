@@ -2,6 +2,7 @@
 {
 	using System.IO;
 	using System.Linq;
+	using System.Runtime.Remoting.Contexts;
 
 	using Low_Code_App_Editor_1.Json;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,6 +33,60 @@
 			var correct = JObject.Parse(File.ReadAllText(@"CompanionFiles\Themes_Extracted.json"));
 
 			Assert.IsTrue(JToken.DeepEquals(usedThemesJson, correct));
+		}
+
+		[TestMethod]
+		public void MergeThemeFromFile()
+		{
+			// Original themes
+			var themesJson = JObject.Parse(File.ReadAllText(@"CompanionFiles\Themes_Merged.json"));
+			var allThemes = themesJson["Themes"] as JArray;
+			var allThemeIds = allThemes.Select(t => t["ID"].Value<int>()).ToList();
+
+			// Themes to be imported
+			var appThemesJson = JObject.Parse(File.ReadAllText(@"CompanionFiles\Themes_Extracted.json"));
+			var appThemes = appThemesJson["Themes"] as JArray;
+
+			// Merge the themes
+			for (int i = 0; i < appThemes.Count; i++)
+			{
+				var theme = appThemes[i];
+				var appThemeId = theme["ID"].Value<int>();
+				var appThemeName = theme["Name"].Value<string>();
+
+				var existingTheme = allThemes.FirstOrDefault(t => t["Name"].Value<string>() == appThemeName);
+				if (existingTheme != null)
+				{
+					var existingThemeId = existingTheme["ID"].Value<int>();
+					if (existingThemeId != appThemeId && allThemeIds.Exists(x => x == appThemeId))
+					{
+						var newId = allThemeIds.Max() + 1;
+						theme["ID"] = newId;
+						appThemeId = newId;
+						allThemeIds.Add(newId);
+					}
+
+					var existingThemeIndex = allThemes.IndexOf(existingTheme);
+					allThemes[existingThemeIndex] = theme;
+				}
+				else
+				{
+					if (allThemeIds.Exists(x => x == appThemeId))
+					{
+						var newId = allThemeIds.Max() + 1;
+						theme["ID"] = newId;
+						appThemeId = newId;
+						allThemeIds.Add(newId);
+					}
+
+					allThemes.Add(theme);
+				}
+			}
+
+			// Grab the solution
+			var correct = JObject.Parse(File.ReadAllText(@"CompanionFiles\Themes.json"));
+
+			Assert.IsTrue(JToken.DeepEquals(themesJson, correct));
 		}
 	}
 }

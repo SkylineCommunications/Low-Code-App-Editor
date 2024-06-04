@@ -38,6 +38,9 @@
 	  <None Update="CompanionFiles\Themes_Extracted.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="CompanionFiles\Themes_Merged.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>
