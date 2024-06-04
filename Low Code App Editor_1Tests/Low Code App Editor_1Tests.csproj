@@ -27,4 +27,17 @@
 		</Reference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="CompanionFiles\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="CompanionFiles\Themes.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="CompanionFiles\Themes_Extracted.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

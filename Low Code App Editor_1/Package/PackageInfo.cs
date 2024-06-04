@@ -46,8 +46,8 @@
         public static PackageInfo FromApp(App app)
         {
             var info = PackageInfo.FromApp();
-            info.DisplayName = $"{app.Name} App Install Pacakge";
-            info.Name = $"{app.Name} App Install Pacakge";
+            info.DisplayName = $"{app.Name} App Install Package";
+            info.Name = $"{app.Name} App Install Package";
             return info;
         }
     }

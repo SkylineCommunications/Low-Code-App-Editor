@@ -1,0 +1,74 @@
+{
+	"__type": "Skyline.DataMiner.Web.Common.v1.Dashboards.DMADashboardThemes",
+	"Themes": [
+		{
+			"__type": "Skyline.DataMiner.Web.Common.v1.Dashboards.DMADashboardTheme",
+			"ID": 2,
+			"IsDefault": false,
+			"IsCustom": false,
+			"ComponentBackgroundColor": "rgb(205,205,205)",
+			"ComponentThemes": [
+				{
+					"__type": "Skyline.DataMiner.Web.Common.v1.Dashboards.DMADashboardComponentTheme",
+					"Name": "Transparant",
+					"Inherit": null,
+					"BackgroundColor": "rgba(238,238,238,0)",
+					"FontColor": "#000000",
+					"MarginHorizontal": 5,
+					"Colors": [
+						"rgb(76,84,84)",
+						"rgb(255,113,91)",
+						"rgb(138,79,255)",
+						"rgb(30,168,150)",
+						"rgb(82,63,56)"
+					],
+					"MarginVertical": 5,
+					"PaddingHorizontal": 5,
+					"PaddingVertical": 5,
+					"BorderWidth": 1,
+					"BorderStyle": "none",
+					"BorderSide": 15,
+					"BorderRadius": 0,
+					"BorderColor": "#000000",
+					"TitleAlignment": "left",
+					"TitleFontSize": 16,
+					"TitleFontFamily": "inherit",
+					"TitleBold": false,
+					"TitleItalic": false,
+					"IncludeTitleBorder": false,
+					"ShadowColor": "#000000",
+					"ShadowStyle": 0
+				}
+			],
+			"Name": "EXTRACT ME PLEASE",
+			"Inherit": null,
+			"BackgroundColor": "rgb(240,240,240)",
+			"FontColor": "#000000",
+			"MarginHorizontal": 5,
+			"Colors": [
+				"rgb(76,84,84)",
+				"rgb(255,113,91)",
+				"rgb(138,79,255)",
+				"rgb(30,168,150)",
+				"rgb(82,63,56)"
+			],
+			"MarginVertical": 5,
+			"PaddingHorizontal": 5,
+			"PaddingVertical": 5,
+			"BorderWidth": 1,
+			"BorderStyle": "none",
+			"BorderSide": 15,
+			"BorderRadius": 0,
+			"BorderColor": "#000000",
+			"TitleAlignment": "left",
+			"TitleFontSize": 16,
+			"TitleFontFamily": "inherit",
+			"TitleBold": false,
+			"TitleItalic": false,
+			"IncludeTitleBorder": false,
+			"ShadowColor": "#000000",
+			"ShadowStyle": 0
+		}
+	],
+	"DefaultThemeID": 0
+}
