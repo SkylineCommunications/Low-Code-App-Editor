@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <DMSScript options="272" xmlns="http://www.skyline.be/automation">
 	<Name>Install</Name>
 	<Description />
@@ -5,15 +6,22 @@
 	<Author>SKYLINE2\RepoManager</Author>
 	<CheckSets>FALSE</CheckSets>
 	<Folder />
-	<Protocols></Protocols>
-	<Memory></Memory>
-	<Parameters></Parameters>
+
+	<Protocols>
+	</Protocols>
+
+	<Memory>
+	</Memory>
+
+	<Parameters>
+	</Parameters>
+
 	<Script>
 		<Exe id="1" type="csharp">
 			<Value>
 				<![CDATA[/*
 ****************************************************************************
-*  Copyright (c) 2021,  Skyline Communications NV  All Rights Reserved.    *
+*  Copyright (c) 2023,  Skyline Communications NV  All Rights Reserved.    *
 ****************************************************************************
 
 By using this script, you expressly agree with the usage terms and
@@ -58,7 +66,7 @@ Revision History:
 
 DATE		VERSION		AUTHOR			COMMENTS
 
-dd/mm/2021	1.0.0.1		XXX, Skyline	Initial version
+dd/mm/2023	1.0.0.1		XXX, Skyline	Initial version
 ****************************************************************************
 */
 
@@ -74,322 +82,56 @@ using Skyline.DataMiner.Automation;
 using Skyline.DataMiner.Net.AppPackages;
 
 //---------------------------------
-// Install_1.cs
+// DOM\DomEditorException.cs
 //---------------------------------
-
-/// <summary>
-///     DataMiner Script Class.
-/// </summary>
-internal class Script
-{
-	/// <summary>
-	///     The script entry point.
-	/// </summary>
-	/// <param name="engine">Provides access to the Automation engine.</param>
-	/// <param name="context">Provides access to the installation context.</param>
-	[AutomationEntryPoint(AutomationEntryPointType.Types.InstallAppPackage)]
-	public void Install(Engine engine, AppInstallContext context)
-	{
-		try
-		{
-			engine.Timeout = new TimeSpan(0, 10, 0);
-			engine.GenerateInformation("Starting installation");
-			var installer = new AppInstaller(Engine.SLNetRaw, context);
-			installer.InstallDefaultContent();
-
-			// Custom installation logic can be added here for each individual install package.
-			DomInstaller domInstaller = new DomInstaller(Engine.SLNetRaw, context, installer.Log);
-			domInstaller.InstallDefaultContent();
-
-			LcaInstaller lcaInstaller = new LcaInstaller(context, installer.Log);
-			lcaInstaller.InstallDefaultContent();
-
-			ImageInstaller imageInstaller = new ImageInstaller(context, installer.Log);
-			imageInstaller.InstallDefaultContent();
-
-			ThemeInstaller themeInstaller = new ThemeInstaller(context, installer.Log);
-			themeInstaller.InstallDefaultContent();
-		}
-		catch (Exception e)
-		{
-			engine.ExitFail("Exception encountered during installation: " + e);
-		}
-	}
-}
-
-//---------------------------------
-// LCA\LcaInstaller.cs
-//---------------------------------
-namespace Install_1.LCA
+namespace Install_1.DOM
 {
 	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
+	using System.Runtime.Serialization;
 
-	using Newtonsoft.Json.Linq;
-
-	using Skyline.DataMiner.Net.AppPackages;
-
-	// Summary:
-	//     Initiates a new instance.
-	//
-	// Parameters:
-	//   connection:
-	//     SLNet raw connection. Can be obtained via Engine object.
-	//
-	//   context:
-	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
-	//     object is automatically provided by the Automation script.
-	public class LcaInstaller
+	[Serializable]
+	public class DomEditorException : Exception
 	{
-		private const string LCA_FOLDERPATH = @"CompanionFiles\LCA";
-		private const string ApplicationsDirectory = @"C:\Skyline DataMiner\applications";
-
-		private readonly AppInstallContext context;
-		private readonly Action<string> logMethod;
-
-		public LcaInstaller(AppInstallContext context, Action<string> logMethod)
+		public DomEditorException()
 		{
-			// Null checks still required / valid input data check
-			this.context = context;
-			this.logMethod = logMethod;
 		}
 
-		// Summary:
-		//     Installs all provided low code apps
-		//     in the AppContent of the package on the DMS.
-		public void InstallDefaultContent()
+		public DomEditorException(string message) : base(message)
 		{
-			Log("Low Code App Installation");
-
-			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
-			Log($"Installing {apps.Length} app(s)");
-
-			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
-			var existingAppsNames = GetAppNames(existingApps);
-			for (int i = 0; i < apps.Length; i++)
-			{
-				var app = apps[i];
-
-				// Check if the name of the app already exists
-				var appName = GetAppName(app);
-				int counter = 0;
-				var newName = appName;
-				while (existingAppsNames.Contains(newName))
-				{
-					counter++;
-					newName = $"{appName} ({counter})";
-				}
-
-				SetAppName(app, newName);
-
-				if (existingApps.Contains(Path.GetFileName(app)))
-				{
-					// Generate a new GUID for the app
-					var oldId = Path.GetFileName(app);
-					var newId = Guid.NewGuid().ToString();
-					var destPath = Path.Combine(ApplicationsDirectory, newId);
-					CopyFolder(app, destPath);
-					foreach (var versionPath in Directory.GetDirectories(destPath))
-					{
-						var configPath = Path.Combine(versionPath, "App.config.json");
-						var file = File.ReadAllText(configPath);
-						File.WriteAllText(configPath, file.Replace(oldId, newId));
-					}
-				}
-				else
-				{
-					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)));
-				}
-
-				Log($"[{i + 1}/{apps.Length}] Installed '{newName}'");
-			}
 		}
 
-		public static void CopyFolder(string sourceFolderPath, string destinationFolderPath)
+		public DomEditorException(string message, Exception inner) : base(message, inner)
 		{
-			DirectoryInfo sourceDir = new DirectoryInfo(sourceFolderPath);
-
-			// If the destination folder doesn't exist, create it
-			if (!Directory.Exists(destinationFolderPath))
-			{
-				Directory.CreateDirectory(destinationFolderPath);
-			}
-
-			// Copy files in the current directory
-			foreach (FileInfo file in sourceDir.GetFiles())
-			{
-				string destFile = Path.Combine(destinationFolderPath, file.Name);
-				file.CopyTo(destFile, false);
-			}
-
-			// Recursively copy subdirectories
-			foreach (DirectoryInfo subdir in sourceDir.GetDirectories())
-			{
-				string destSubdir = Path.Combine(destinationFolderPath, subdir.Name);
-				CopyFolder(subdir.FullName, destSubdir);
-			}
 		}
 
-		private string[] GetAppNames(IEnumerable<string> existingApps)
+		protected DomEditorException(
+			SerializationInfo info,
+			StreamingContext context) : base(info, context)
 		{
-			var names = new List<string>();
-			foreach (var app in existingApps)
-			{
-				names.Add(GetAppName(app));
-			}
-
-			return names.Where(name => name != null).ToArray();
-		}
-
-		private string GetAppName(string appId)
-		{
-			try
-			{
-				// Get public version
-				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
-				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
-				
-				// If public is not available grab draft version
-				if(pulicVersion <= 0)
-				{
-					pulicVersion = JObject.Parse(info)["DraftVersion"].Value<int>();
-				}
-
-				// Get name
-				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
-				var name = JObject.Parse(config)["Name"].Value<string>();
-
-				return name;
-			}
-			catch (Exception ex)
-			{
-				Log($"Could not get name of app with ID: {appId}\nException: \n{ex}");
-				return null;
-			}
-		}
-
-		private void SetAppName(string appId, string name)
-		{
-			try
-			{
-				// Get public version
-				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
-				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
-
-				// set name
-				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
-				var json = JObject.Parse(config);
-				json["Name"] = name;
-				System.IO.File.WriteAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"), json.ToString());
-			}
-			catch (Exception)
-			{
-				Log($"Could not set name of app with ID: {appId}, to {name}");
-			}
-		}
-
-		// Summary:
-		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		//     The message will also be shown during installation with the DataMiner Application
-		//     Package Installer from the Skyline TaskBar Utility.
-		//
-		// Parameters:
-		//   message:
-		//     A message you want to log or show during installation.
-		public void Log(string message)
-		{
-			logMethod(message);
 		}
 	}
 }
 
 //---------------------------------
-// DOM\DomInstaller.cs
+// DOM\DomImporter.cs
 //---------------------------------
 namespace Install_1.DOM
 {
 	using System;
 	using System.IO;
 	using System.Linq;
-	using System.Runtime.Serialization;
 	using System.Text;
 
 	using Newtonsoft.Json;
 	using Newtonsoft.Json.Serialization;
 
-	using Skyline.DataMiner.Net;
-	using Skyline.DataMiner.Net.AppPackages;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Apps.Modules;
 	using Skyline.DataMiner.Net.Jobs;
-	using Skyline.DataMiner.Net.LogHelpers;
 	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
-
-	// Summary:
-	//     Initiates a new instance.
-	//
-	// Parameters:
-	//   connection:
-	//     SLNet raw connection. Can be obtained via Engine object.
-	//
-	//   context:
-	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
-	//     object is automatically provided by the Automation script.
-	public class DomInstaller
-	{
-		private const string DOM_FOLDERPATH = @"CompanionFiles\DOM\";
-
-		private readonly AppInstallContext context;
-		private readonly Action<string> logMethod;
-
-		private readonly DomImporter domImporter;
-
-		public DomInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
-		{
-			// Null checks still required / valid input data check
-			this.context = context;
-			this.logMethod = logMethod;
-			domImporter = new DomImporter(connection.HandleMessages);
-			domImporter.Progress += DomImporter_Progress;
-		}
-
-		// Summary:
-		//     Installs all exported DOM files from the DOM editor script
-		//     in the AppContent of the package on the DMS.
-		public void InstallDefaultContent()
-		{
-			Log("Installing DOM items");
-
-			foreach (var exportedDomJson in Directory.GetFiles(context.AppContentPath + DOM_FOLDERPATH, "*.json"))
-			{
-				Log("Installing " + exportedDomJson);
-				domImporter.Import(exportedDomJson);
-			}
-		}
-
-		// Summary:
-		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		//     The message will also be shown during installation with the DataMiner Application
-		//     Package Installer from the Skyline TaskBar Utility.
-		//
-		// Parameters:
-		//   message:
-		//     A message you want to log or show during installation.
-		public void Log(string message)
-		{
-			logMethod(message);
-		}
-
-		private void DomImporter_Progress(object sender, ItemProgressEventArgs e)
-		{
-			Log("Installed " + e.Items + " DOM item(s)");
-		}
-	}
 
 	public class DomImporter
 	{
@@ -588,34 +330,91 @@ namespace Install_1.DOM
 			}
 		}
 	}
+}
+//---------------------------------
+// DOM\DomInstaller.cs
+//---------------------------------
+namespace Install_1.DOM
+{
+	using System;
+	using System.IO;
+
+	using Skyline.DataMiner.Net;
+	using Skyline.DataMiner.Net.AppPackages;
+
+	// Summary:
+	//     Initiates a new instance.
+	//
+	// Parameters:
+	//   connection:
+	//     SLNet raw connection. Can be obtained via Engine object.
+	//
+	//   context:
+	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
+	//     object is automatically provided by the Automation script.
+	public class DomInstaller
+	{
+		private const string DOM_FOLDERPATH = @"CompanionFiles\DOM\";
+
+		private readonly AppInstallContext context;
+		private readonly Action<string> logMethod;
+
+		private readonly DomImporter domImporter;
+
+		public DomInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
+		{
+			// Null checks still required / valid input data check
+			this.context = context;
+			this.logMethod = logMethod;
+			domImporter = new DomImporter(connection.HandleMessages);
+			domImporter.Progress += DomImporter_Progress;
+		}
+
+		// Summary:
+		//     Installs all exported DOM files from the DOM editor script
+		//     in the AppContent of the package on the DMS.
+		public void InstallDefaultContent()
+		{
+			Log("Installing DOM items");
+
+			foreach (var exportedDomJson in Directory.GetFiles(context.AppContentPath + DOM_FOLDERPATH, "*.json"))
+			{
+				Log("Installing " + exportedDomJson);
+				domImporter.Import(exportedDomJson);
+			}
+		}
+
+		// Summary:
+		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		//     The message will also be shown during installation with the DataMiner Application
+		//     Package Installer from the Skyline TaskBar Utility.
+		//
+		// Parameters:
+		//   message:
+		//     A message you want to log or show during installation.
+		public void Log(string message)
+		{
+			logMethod(message);
+		}
+
+		private void DomImporter_Progress(object sender, ItemProgressEventArgs e)
+		{
+			Log("Installed " + e.Items + " DOM item(s)");
+		}
+	}
+}
+//---------------------------------
+// DOM\ItemProgressEventArgs.cs
+//---------------------------------
+namespace Install_1.DOM
+{
+	using System;
 
 	public class ItemProgressEventArgs : EventArgs
 	{
 		public ItemProgressEventArgs(int items) => Items = items;
 
 		public int Items { get; internal set; }
-	}
-
-	[Serializable]
-	public class DomEditorException : Exception
-	{
-		public DomEditorException()
-		{
-		}
-
-		public DomEditorException(string message) : base(message)
-		{
-		}
-
-		public DomEditorException(string message, Exception inner) : base(message, inner)
-		{
-		}
-
-		protected DomEditorException(
-			SerializationInfo info,
-			StreamingContext context) : base(info, context)
-		{
-		}
 	}
 }
 
@@ -625,11 +424,7 @@ namespace Install_1.DOM
 namespace Install_1.Images
 {
 	using System;
-	using System.Collections.Generic;
 	using System.IO;
-	using System.Linq;
-
-	using Newtonsoft.Json.Linq;
 
 	using Skyline.DataMiner.Net.AppPackages;
 
@@ -694,21 +489,250 @@ namespace Install_1.Images
 		}
 	}
 }
+//---------------------------------
+// Install_1.cs
+//---------------------------------
 
+/// <summary>
+/// DataMiner Script Class.
+/// </summary>
+internal class Script
+{
+	/// <summary>
+	/// The script entry point.
+	/// </summary>
+	/// <param name="engine">Provides access to the Automation engine.</param>
+	/// <param name="context">Provides access to the installation context.</param>
+	[AutomationEntryPoint(AutomationEntryPointType.Types.InstallAppPackage)]
+	public void Install(IEngine engine, AppInstallContext context)
+	{
+		try
+		{
+			engine.Timeout = new TimeSpan(0, 10, 0);
+			engine.GenerateInformation("Starting installation");
+			var installer = new AppInstaller(Engine.SLNetRaw, context);
+			installer.InstallDefaultContent();
+
+			// Custom installation logic can be added here for each individual install package.
+			var domInstaller = new DomInstaller(Engine.SLNetRaw, context, installer.Log);
+			domInstaller.InstallDefaultContent();
+
+			// Install app themes
+			var themeInstaller = new ThemeInstaller(context, installer.Log);
+			themeInstaller.InstallDefaultContent();
+
+			// Create image installer
+			var imageInstaller = new ImageInstaller(context, installer.Log);
+			imageInstaller.InstallDefaultContent();
+
+			// Install the low code app
+			var lcaInstaller = new LcaInstaller(context, installer.Log);
+			lcaInstaller.InstallDefaultContent();
+		}
+		catch (Exception e)
+		{
+			engine.ExitFail("Exception encountered during installation: " + e);
+		}
+	}
+}
 //---------------------------------
-// Images\ThemeInstaller.cs
+// LCA\LCAInstaller.cs
 //---------------------------------
-namespace Install_1.Themes
+namespace Install_1.LCA
 {
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
-	using System.Security.Policy;
 
 	using Newtonsoft.Json.Linq;
 
-	using Skyline.DataMiner.Net;
+	using Skyline.DataMiner.Net.AppPackages;
+
+	// Summary:
+	//     Initiates a new instance.
+	//
+	// Parameters:
+	//   connection:
+	//     SLNet raw connection. Can be obtained via Engine object.
+	//
+	//   context:
+	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
+	//     object is automatically provided by the Automation script.
+	public class LcaInstaller
+	{
+		private const string LCA_FOLDERPATH = @"CompanionFiles\LCA";
+		private const string ApplicationsDirectory = @"C:\Skyline DataMiner\applications";
+
+		private readonly AppInstallContext context;
+		private readonly Action<string> logMethod;
+
+		public LcaInstaller(AppInstallContext context, Action<string> logMethod)
+		{
+			// Null checks still required / valid input data check
+			this.context = context;
+			this.logMethod = logMethod;
+		}
+
+		// Summary:
+		//     Installs all provided low code apps
+		//     in the AppContent of the package on the DMS.
+		public void InstallDefaultContent()
+		{
+			Log("Low Code App Installation");
+
+			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
+			Log($"Installing {apps.Length} app(s)");
+
+			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
+			var existingAppsNames = GetAppNames(existingApps);
+			for (int i = 0; i < apps.Length; i++)
+			{
+				var app = apps[i];
+
+				// Check if the name of the app already exists
+				var appName = GetAppName(app);
+				int counter = 0;
+				var newName = appName;
+				while (existingAppsNames.Contains(newName))
+				{
+					counter++;
+					newName = $"{appName} ({counter})";
+				}
+
+				SetAppName(app, newName);
+
+				if (existingApps.Contains(Path.GetFileName(app)))
+				{
+					// Generate a new GUID for the app
+					var oldId = Path.GetFileName(app);
+					var newId = Guid.NewGuid().ToString();
+					var destPath = Path.Combine(ApplicationsDirectory, newId);
+					CopyFolder(app, destPath);
+					foreach (var versionPath in Directory.GetDirectories(destPath))
+					{
+						var configPath = Path.Combine(versionPath, "App.config.json");
+						var file = File.ReadAllText(configPath);
+						File.WriteAllText(configPath, file.Replace(oldId, newId));
+					}
+				}
+				else
+				{
+					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)));
+				}
+
+				Log($"[{i + 1}/{apps.Length}] Installed '{newName}'");
+			}
+		}
+
+		public static void CopyFolder(string sourceFolderPath, string destinationFolderPath)
+		{
+			DirectoryInfo sourceDir = new DirectoryInfo(sourceFolderPath);
+
+			// If the destination folder doesn't exist, create it
+			if (!Directory.Exists(destinationFolderPath))
+			{
+				Directory.CreateDirectory(destinationFolderPath);
+			}
+
+			// Copy files in the current directory
+			foreach (FileInfo file in sourceDir.GetFiles())
+			{
+				string destFile = Path.Combine(destinationFolderPath, file.Name);
+				file.CopyTo(destFile, false);
+			}
+
+			// Recursively copy subdirectories
+			foreach (DirectoryInfo subdir in sourceDir.GetDirectories())
+			{
+				string destSubdir = Path.Combine(destinationFolderPath, subdir.Name);
+				CopyFolder(subdir.FullName, destSubdir);
+			}
+		}
+
+		private string[] GetAppNames(IEnumerable<string> existingApps)
+		{
+			var names = new List<string>();
+			foreach (var app in existingApps)
+			{
+				names.Add(GetAppName(app));
+			}
+
+			return names.Where(name => name != null).ToArray();
+		}
+
+		private string GetAppName(string appId)
+		{
+			try
+			{
+				// Get public version
+				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
+				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
+
+				// If public is not available grab draft version
+				if (pulicVersion <= 0)
+				{
+					pulicVersion = JObject.Parse(info)["DraftVersion"].Value<int>();
+				}
+
+				// Get name
+				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
+				var name = JObject.Parse(config)["Name"].Value<string>();
+
+				return name;
+			}
+			catch (Exception ex)
+			{
+				Log($"Could not get name of app with ID: {appId}\nException: \n{ex}");
+				return null;
+			}
+		}
+
+		private void SetAppName(string appId, string name)
+		{
+			try
+			{
+				// Get public version
+				var info = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, "App.info.json"));
+				var pulicVersion = JObject.Parse(info)["PublicVersion"].Value<int>();
+
+				// set name
+				var config = System.IO.File.ReadAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"));
+				var json = JObject.Parse(config);
+				json["Name"] = name;
+				System.IO.File.WriteAllText(Path.Combine(ApplicationsDirectory, appId, $"version_{pulicVersion}", "App.config.json"), json.ToString());
+			}
+			catch (Exception)
+			{
+				Log($"Could not set name of app with ID: {appId}, to {name}");
+			}
+		}
+
+		// Summary:
+		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		//     The message will also be shown during installation with the DataMiner Application
+		//     Package Installer from the Skyline TaskBar Utility.
+		//
+		// Parameters:
+		//   message:
+		//     A message you want to log or show during installation.
+		public void Log(string message)
+		{
+			logMethod(message);
+		}
+	}
+}
+//---------------------------------
+// Themes\ThemeInstaller.cs
+//---------------------------------
+namespace Install_1.Themes
+{
+	using System;
+	using System.IO;
+	using System.Linq;
+
+	using Newtonsoft.Json.Linq;
+
 	using Skyline.DataMiner.Net.AppPackages;
 
 	public class ThemeInstaller
@@ -746,7 +770,6 @@ namespace Install_1.Themes
 				return;
 			}
 
-
 			// Check if themes file exists
 			if (!File.Exists(Themes_DataMiner_Path))
 			{
@@ -761,7 +784,7 @@ namespace Install_1.Themes
 			var allThemes = allThemesFull["Themes"] as JArray;
 			var allThemeIds = allThemes.Select(t => t["ID"].Value<int>()).ToList();
 
-			for(int i = 0; i < appThemes.Count; i++)
+			for (int i = 0; i < appThemes.Count; i++)
 			{
 				var theme = appThemes[i];
 				var appThemeId = theme["ID"].Value<int>();
@@ -818,11 +841,18 @@ namespace Install_1.Themes
 			<!--<Param type="debug">true</Param>-->
 			<Message />
 			<Param type="ref">System.Transactions.dll</Param>
+			<Param type="ref">Microsoft.CSharp.dll</Param>
+			<Param type="ref">System.Data.DataSetExtensions.dll</Param>
 			<Param type="ref">System.IO.Compression.FileSystem.dll</Param>
-			<!--<Param type="ref">AlphaFS.dll</Param>-->
+			<Param type="ref">AlphaFS.dll</Param>
 			<Param type="ref">Newtonsoft.Json.dll</Param>
+			<Param type="ref">Skyline.DataMiner.CICD.FileSystem.dll</Param>
+			<Param type="ref">System.IO.Compression.dll</Param>
 			<Param type="ref">System.IO.Compression.ZipFile.dll</Param>
 			<Param type="ref">Skyline.DataMiner.Core.AppPackageInstaller.dll</Param>
+			<Param type="ref">System.Threading.Tasks.Dataflow.dll</Param>
+			<Param type="ref">Skyline.DataMiner.Core.DataMinerSystem.Common.dll</Param>
+			<Param type="ref">Skyline.DataMiner.Core.DataMinerSystem.Automation.dll</Param>
 		</Exe>
 	</Script>
 </DMSScript>
