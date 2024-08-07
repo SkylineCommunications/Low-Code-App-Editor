@@ -1,10 +1,10 @@
-# Low-Code-App-Extensions
+# Low-Code-App-Editor
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SkylineCommunications_Low-Code-App-Extensions&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SkylineCommunications_Low-Code-App-Extensions)
 
 An interactive Automation script to import, export, and do some general edits to the low-code apps of a DataMiner System.
 
-![Overview](Documentation/LCAEditor_1_0_0_8.gif)
+![Overview](Documentation/LCAEditor_1_0_0_13.gif)
 
 ## Installation
 
@@ -54,7 +54,7 @@ You can edit some general information about the low-code app. You can import pag
 > When you add users to the editors/viewers list, there is no check if the users that you add actually exist.
 >
 
-![Editor](Documentation/EditorDialog_1_0_0_8.gif)
+![Editor](Documentation/EditorDialog_1_0_0_13.gif)
 
 ### Export
 It is possible to export apps. We highly recommend enabling the option to export as a package, as this will try and collect all the used custom operators and action scripts and include them in the package. 
@@ -65,12 +65,14 @@ From version 1.0.0.6 onwards, you can enable an option to also include DOM insta
 
 From version 1.0.0.9 onwards, the used images are included in the package as well.
 
+From version 1.0.0.12 onwards, the used themes can be included as well.
 #### Overview of included items
  - Custom operators
  - Configured action scripts
  - Dependencies of the used scripts
  - DOM modules
  - Images
+ - Themes
 
 > [!NOTE]  
 > When exporting an app from one DMA to another, make sure the versions match (for example the GQI versions).
@@ -78,12 +80,26 @@ From version 1.0.0.9 onwards, the used images are included in the package as wel
 ![Editor](Documentation/ExportDialog.png)
 
 ### Import 
-This is used to import apps that have not been exported as a package. These will not include any of the custom scripts.
 
-> [!WARNING]
-> If you want to import .dmapp packages, you cannot do it with this import. You will need to use the client test tool.
+Importing an exported .dmapp package can happen in a few different ways:
 
-![Editor](Documentation/ImportDialog.png)
+#### Taskbar Utility
+If you have access to the DataMiner agent, you can copy over the .dmapp package and double click it to install it via the Taskbar Utility.
+
+![Editor](Documentation/TaskbarUtility_Install.png)
+
+#### Client test tool
+If you do not have RDP access to the DataMiner agent, but have a DataMiner user with the correct permissions. Then you can use the Client Test Tool to install packages too.
+
+1. Open the Client Test Tool
+1. In the tool bar go to "Connection" -> "Connect"
+1. Enter you credentials and press "Connect"
+1. in the tool bar go to "Advanced" -> "Apps" -> "AppPackages..."
+1. Click on "Upload Package" and select the .dmapp package
+1. Select the uploaded package in the list and press "Install Package"
+1. [Optional] Remove the uploaded package by clicking "Remove Uploaded Package"
+
+![Editor](Documentation/AppPackages_Window.png)
 
 ### Delete
 You can delete apps as well.
