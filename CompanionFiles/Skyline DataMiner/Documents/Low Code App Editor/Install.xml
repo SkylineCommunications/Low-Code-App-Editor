@@ -21,7 +21,7 @@
 			<Value>
 				<![CDATA[/*
 ****************************************************************************
-*  Copyright (c) 2023,  Skyline Communications NV  All Rights Reserved.    *
+*  Copyright (c) 2024,  Skyline Communications NV  All Rights Reserved.    *
 ****************************************************************************
 
 By using this script, you expressly agree with the usage terms and
@@ -66,10 +66,9 @@ Revision History:
 
 DATE		VERSION		AUTHOR			COMMENTS
 
-dd/mm/2023	1.0.0.1		XXX, Skyline	Initial version
+06/08/2024	1.0.0.1		AMA, Skyline	Initial version
 ****************************************************************************
 */
-
 using System;
 
 using Install_1.DOM;
@@ -111,10 +110,11 @@ namespace Install_1.DOM
 		}
 	}
 }
-
 //---------------------------------
 // DOM\DomImporter.cs
 //---------------------------------
+// Ignore Spelling: Json
+
 namespace Install_1.DOM
 {
 	using System;
@@ -342,16 +342,6 @@ namespace Install_1.DOM
 	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.AppPackages;
 
-	// Summary:
-	//     Initiates a new instance.
-	//
-	// Parameters:
-	//   connection:
-	//     SLNet raw connection. Can be obtained via Engine object.
-	//
-	//   context:
-	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
-	//     object is automatically provided by the Automation script.
 	public class DomInstaller
 	{
 		private const string DOM_FOLDERPATH = @"CompanionFiles\DOM\";
@@ -361,6 +351,14 @@ namespace Install_1.DOM
 
 		private readonly DomImporter domImporter;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DomInstaller"/> class.
+		/// </summary>
+		/// <param name="connection">SLNet raw connection. Can be obtained via Engine object.</param>
+		/// <param name="context">
+		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
+		/// </param>
+		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
 		public DomInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
 		{
 			// Null checks still required / valid input data check
@@ -370,9 +368,9 @@ namespace Install_1.DOM
 			domImporter.Progress += DomImporter_Progress;
 		}
 
-		// Summary:
-		//     Installs all exported DOM files from the DOM editor script
-		//     in the AppContent of the package on the DMS.
+		/// <summary>
+		/// Installs all exported DOM files from the DOM editor script in the AppContent of the package on the DMS.
+		/// </summary>
 		public void InstallDefaultContent()
 		{
 			Log("Installing DOM items");
@@ -384,14 +382,12 @@ namespace Install_1.DOM
 			}
 		}
 
-		// Summary:
-		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		//     The message will also be shown during installation with the DataMiner Application
-		//     Package Installer from the Skyline TaskBar Utility.
-		//
-		// Parameters:
-		//   message:
-		//     A message you want to log or show during installation.
+		/// <summary>
+		/// Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		/// The message will also be shown during installation with the DataMiner Application
+		/// Package Installer from the Skyline TaskBar Utility.
+		/// </summary>
+		/// <param name="message">A message you want to log or show during installation.</param>
 		public void Log(string message)
 		{
 			logMethod(message);
@@ -417,6 +413,42 @@ namespace Install_1.DOM
 		public int Items { get; internal set; }
 	}
 }
+//---------------------------------
+// Extensions.cs
+//---------------------------------
+namespace Install_1
+{
+	using System;
+
+	using Skyline.DataMiner.Net;
+	using Skyline.DataMiner.Net.Exceptions;
+	using Skyline.DataMiner.Net.Messages;
+	using Skyline.DataMiner.Net.Messages.Advanced;
+
+	internal static class Extensions
+	{
+		public static void SyncFile(this IConnection connection, string filePath, Action<string> logger = null)
+		{
+			SetDataMinerInfoMessage message = new SetDataMinerInfoMessage
+			{
+				What = 41,
+				StrInfo1 = filePath,
+				IInfo2 = 34,
+			};
+
+			var response = connection.HandleSingleResponseMessage(message);
+			if(response == null)
+			{
+				logger?.Invoke($"Could not sync file, did not receive a response. Path: {filePath}");
+			}
+
+			if (response is CreateProtocolFileResponse createProtocolFileResponse && createProtocolFileResponse.ErrorCode != 0)
+			{
+				logger?.Invoke($"Could not sync file, the returned error code was {createProtocolFileResponse.ErrorCode}. Path: {filePath}");
+			}
+		}
+	}
+}
 
 //---------------------------------
 // Images\ImageInstaller.cs
@@ -426,6 +458,7 @@ namespace Install_1.Images
 	using System;
 	using System.IO;
 
+	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.AppPackages;
 
 	public class ImageInstaller
@@ -433,19 +466,28 @@ namespace Install_1.Images
 		private const string Images_FOLDERPATH = @"CompanionFiles\Images";
 		private const string Images_Directory = @"C:\Skyline DataMiner\Dashboards\_IMAGES";
 
+		private readonly IConnection connection;
 		private readonly AppInstallContext context;
 		private readonly Action<string> logMethod;
 
-		public ImageInstaller(AppInstallContext context, Action<string> logMethod)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ImageInstaller"/> class.
+		/// </summary>
+		/// <param name="connection">SLNet raw connection. Can be obtained via Engine object.</param>
+		/// <param name="context">
+		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
+		/// </param>
+		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
+		public ImageInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
 		{
-			// Null checks still required / valid input data check
+			this.connection = connection;
 			this.context = context;
 			this.logMethod = logMethod;
 		}
 
-		// Summary:
-		//     Installs all provided images
-		//     in the AppContent of the package on the DMS.
+		/// <summary>
+		/// Installs all provided images in the AppContent of the package on the DMS.
+		/// </summary>
 		public void InstallDefaultContent()
 		{
 			Log("Low Code App Images Installation");
@@ -470,19 +512,18 @@ namespace Install_1.Images
 				else
 				{
 					File.Copy(image, path);
+					connection.SyncFile(path);
 					Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
 				}
 			}
 		}
 
-		// Summary:
-		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		//     The message will also be shown during installation with the DataMiner Application
-		//     Package Installer from the Skyline TaskBar Utility.
-		//
-		// Parameters:
-		//   message:
-		//     A message you want to log or show during installation.
+		/// <summary>
+		/// Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		/// The message will also be shown during installation with the DataMiner Application
+		/// Package Installer from the Skyline TaskBar Utility.
+		/// </summary>
+		/// <param name="message">A message you want to log or show during installation.</param>
 		public void Log(string message)
 		{
 			logMethod(message);
@@ -518,11 +559,11 @@ internal class Script
 			domInstaller.InstallDefaultContent();
 
 			// Install app themes
-			var themeInstaller = new ThemeInstaller(context, installer.Log);
+			var themeInstaller = new ThemeInstaller(Engine.SLNetRaw, context, installer.Log);
 			themeInstaller.InstallDefaultContent();
 
 			// Create image installer
-			var imageInstaller = new ImageInstaller(context, installer.Log);
+			var imageInstaller = new ImageInstaller(Engine.SLNetRaw, context, installer.Log);
 			imageInstaller.InstallDefaultContent();
 
 			// Install the low code app
@@ -536,8 +577,26 @@ internal class Script
 	}
 }
 //---------------------------------
-// LCA\LCAInstaller.cs
+// LCA\InstallOptions.cs
 //---------------------------------
+// Ignore Spelling: LCA
+
+namespace Install_1.LCA
+{
+	using Newtonsoft.Json;
+
+	public class InstallOptions
+	{
+		[JsonProperty("Overwrite")]
+		public bool OverwritePreviousVersions { get; set; }
+	}
+}
+
+//---------------------------------
+// LCA\LcaInstaller.cs
+//---------------------------------
+// Ignore Spelling: LCA app apps logfile
+
 namespace Install_1.LCA
 {
 	using System;
@@ -545,87 +604,37 @@ namespace Install_1.LCA
 	using System.IO;
 	using System.Linq;
 
+	using Newtonsoft.Json;
 	using Newtonsoft.Json.Linq;
 
 	using Skyline.DataMiner.Net.AppPackages;
 
-	// Summary:
-	//     Initiates a new instance.
-	//
-	// Parameters:
-	//   connection:
-	//     SLNet raw connection. Can be obtained via Engine object.
-	//
-	//   context:
-	//     Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext
-	//     object is automatically provided by the Automation script.
 	public class LcaInstaller
 	{
+		private const string InstallOptionsFileName = "InstallOptions.json";
 		private const string LCA_FOLDERPATH = @"CompanionFiles\LCA";
 		private const string ApplicationsDirectory = @"C:\Skyline DataMiner\applications";
 
 		private readonly AppInstallContext context;
+		private readonly InstallOptions options;
 		private readonly Action<string> logMethod;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LcaInstaller"/> class.
+		/// </summary>
+		/// <param name="context">
+		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
+		/// </param>
+		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
 		public LcaInstaller(AppInstallContext context, Action<string> logMethod)
 		{
 			// Null checks still required / valid input data check
 			this.context = context;
+			this.options = JsonConvert.DeserializeObject<InstallOptions>(File.ReadAllText(context.AppContentPath + InstallOptionsFileName));
 			this.logMethod = logMethod;
 		}
 
-		// Summary:
-		//     Installs all provided low code apps
-		//     in the AppContent of the package on the DMS.
-		public void InstallDefaultContent()
-		{
-			Log("Low Code App Installation");
-
-			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
-			Log($"Installing {apps.Length} app(s)");
-
-			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
-			var existingAppsNames = GetAppNames(existingApps);
-			for (int i = 0; i < apps.Length; i++)
-			{
-				var app = apps[i];
-
-				// Check if the name of the app already exists
-				var appName = GetAppName(app);
-				int counter = 0;
-				var newName = appName;
-				while (existingAppsNames.Contains(newName))
-				{
-					counter++;
-					newName = $"{appName} ({counter})";
-				}
-
-				SetAppName(app, newName);
-
-				if (existingApps.Contains(Path.GetFileName(app)))
-				{
-					// Generate a new GUID for the app
-					var oldId = Path.GetFileName(app);
-					var newId = Guid.NewGuid().ToString();
-					var destPath = Path.Combine(ApplicationsDirectory, newId);
-					CopyFolder(app, destPath);
-					foreach (var versionPath in Directory.GetDirectories(destPath))
-					{
-						var configPath = Path.Combine(versionPath, "App.config.json");
-						var file = File.ReadAllText(configPath);
-						File.WriteAllText(configPath, file.Replace(oldId, newId));
-					}
-				}
-				else
-				{
-					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)));
-				}
-
-				Log($"[{i + 1}/{apps.Length}] Installed '{newName}'");
-			}
-		}
-
-		public static void CopyFolder(string sourceFolderPath, string destinationFolderPath)
+		public static void CopyFolder(string sourceFolderPath, string destinationFolderPath, bool overwrite = false)
 		{
 			DirectoryInfo sourceDir = new DirectoryInfo(sourceFolderPath);
 
@@ -639,15 +648,93 @@ namespace Install_1.LCA
 			foreach (FileInfo file in sourceDir.GetFiles())
 			{
 				string destFile = Path.Combine(destinationFolderPath, file.Name);
-				file.CopyTo(destFile, false);
+				file.CopyTo(destFile, overwrite);
 			}
 
 			// Recursively copy subdirectories
 			foreach (DirectoryInfo subdir in sourceDir.GetDirectories())
 			{
 				string destSubdir = Path.Combine(destinationFolderPath, subdir.Name);
-				CopyFolder(subdir.FullName, destSubdir);
+				CopyFolder(subdir.FullName, destSubdir, overwrite);
 			}
+		}
+
+		/// <summary>
+		/// Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		/// The message will also be shown during installation with the DataMiner Application
+		/// Package Installer from the Skyline TaskBar Utility.
+		/// </summary>
+		/// <param name="message">A message you want to log or show during installation.</param>
+		public void Log(string message)
+		{
+			logMethod(message);
+		}
+
+		/// <summary>
+		/// Installs all provided low code apps in the AppContent of the package on the DMS.
+		/// </summary>
+		public void InstallDefaultContent()
+		{
+			Log("Low Code App Installation");
+
+			var apps = Directory.GetDirectories(context.AppContentPath + LCA_FOLDERPATH);
+			Log($"Installing {apps.Length} app(s)");
+
+			var existingApps = Directory.GetDirectories(ApplicationsDirectory).Select(dir => Path.GetFileName(dir));
+			var existingAppsNames = GetAppNames(existingApps);
+
+			for (int i = 0; i < apps.Length; i++)
+			{
+				var app = apps[i];
+				var newName = GetAppName(app);
+
+				if (options.OverwritePreviousVersions)
+				{
+					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)), true);
+				}
+				else
+				{
+					newName = SafeInstallApp(existingApps, existingAppsNames, app);
+				}
+
+				Log($"[{i + 1}/{apps.Length}] Installed '{newName}'");
+			}
+		}
+
+		private string SafeInstallApp(IEnumerable<string> existingApps, IEnumerable<string> existingAppsNames, string app)
+		{
+			// Check if the name of the app already exists
+			var appName = GetAppName(app);
+			int counter = 0;
+			var newName = appName;
+			while (existingAppsNames.Contains(newName))
+			{
+				counter++;
+				newName = $"{appName} ({counter})";
+			}
+
+			SetAppName(app, newName);
+
+			if (existingApps.Contains(Path.GetFileName(app)))
+			{
+				// Generate a new GUID for the app
+				var oldId = Path.GetFileName(app);
+				var newId = Guid.NewGuid().ToString();
+				var destPath = Path.Combine(ApplicationsDirectory, newId);
+				CopyFolder(app, destPath, false);
+				foreach (var versionPath in Directory.GetDirectories(destPath))
+				{
+					var configPath = Path.Combine(versionPath, "App.config.json");
+					var file = File.ReadAllText(configPath);
+					File.WriteAllText(configPath, file.Replace(oldId, newId));
+				}
+			}
+			else
+			{
+				CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)), false);
+			}
+
+			return newName;
 		}
 
 		private string[] GetAppNames(IEnumerable<string> existingApps)
@@ -707,19 +794,6 @@ namespace Install_1.LCA
 				Log($"Could not set name of app with ID: {appId}, to {name}");
 			}
 		}
-
-		// Summary:
-		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		//     The message will also be shown during installation with the DataMiner Application
-		//     Package Installer from the Skyline TaskBar Utility.
-		//
-		// Parameters:
-		//   message:
-		//     A message you want to log or show during installation.
-		public void Log(string message)
-		{
-			logMethod(message);
-		}
 	}
 }
 //---------------------------------
@@ -733,6 +807,7 @@ namespace Install_1.Themes
 
 	using Newtonsoft.Json.Linq;
 
+	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.AppPackages;
 
 	public class ThemeInstaller
@@ -740,19 +815,28 @@ namespace Install_1.Themes
 		private const string Themes_Context_PATH = @"CompanionFiles\Themes\Themes.json";
 		private const string Themes_DataMiner_Path = @"C:\Skyline DataMiner\dashboards\Themes.json";
 
+		private readonly IConnection connection;
 		private readonly AppInstallContext context;
 		private readonly Action<string> logMethod;
 
-		public ThemeInstaller(AppInstallContext context, Action<string> logMethod)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ThemeInstaller"/> class.
+		/// </summary>
+		/// <param name="connection">SLNet raw connection. Can be obtained via Engine object.</param>
+		/// <param name="context">
+		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
+		/// </param>
+		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
+		public ThemeInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
 		{
-			// Null checks still required / valid input data check
+			this.connection = connection;
 			this.context = context;
 			this.logMethod = logMethod;
 		}
 
-		// Summary:
-		//     Installs all provided images
-		//     in the AppContent of the package on the DMS.
+		/// <summary>
+		/// Installs all provided images in the AppContent of the package on the DMS.
+		/// </summary>
 		public void InstallDefaultContent()
 		{
 			Log("Low Code App Themes Installation");
@@ -814,6 +898,7 @@ namespace Install_1.Themes
 						appThemeId = newId;
 						allThemeIds.Add(newId);
 					}
+
 					allThemes.Add(theme);
 				}
 
@@ -821,16 +906,15 @@ namespace Install_1.Themes
 			}
 
 			File.WriteAllText(Themes_DataMiner_Path, allThemesFull.ToString());
+			connection.SyncFile(Themes_DataMiner_Path);
 		}
 
-		// Summary:
-		//     Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		//     The message will also be shown during installation with the DataMiner Application
-		//     Package Installer from the Skyline TaskBar Utility.
-		//
-		// Parameters:
-		//   message:
-		//     A message you want to log or show during installation.
+		/// <summary>
+		/// Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		/// The message will also be shown during installation with the DataMiner Application
+		/// Package Installer from the Skyline TaskBar Utility.
+		/// </summary>
+		/// <param name="message">A message you want to log or show during installation.</param>
 		public void Log(string message)
 		{
 			logMethod(message);

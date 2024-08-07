@@ -35,52 +35,6 @@
 		public static string ExportApps(IEngine engine, IEnumerable<App> apps, ExportOptions options)
 		{
 			return ExportPackage(engine, apps, options);
-
-			if (options.ExportPackage)
-			{
-				return ExportPackage(engine, apps, options);
-			}
-			else
-			{
-				return ExportBasic(apps, options);
-			}
-		}
-
-		private static string ExportBasic(IEnumerable<App> apps, ExportOptions options)
-		{
-			var now = DateTime.Now;
-			var exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
-			if (apps.Count() == 1)
-			{
-				// When only one app is selected we can include the app name in the package name
-				exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{apps.First().Name}_{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
-			}
-
-			if (!Directory.Exists(Path.GetDirectoryName(exportPath)))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(exportPath));
-			}
-
-			using (var fs = new FileStream(exportPath, FileMode.Create))
-			using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
-			{
-				foreach (var app in apps)
-				{
-					if (!options.IncludeVersions)
-					{
-						// Just include the general .json file and the latest version
-						zip.CreateEntryFromDirectory(app.Path, null, false);
-						zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{app.LatestVersion.Version} "), Path.Combine(app.LatestVersion.ID, $"version_{app.LatestVersion.Version}"), true);
-					}
-					else
-					{
-						// Include everything
-						zip.CreateEntryFromDirectory(app.Path);
-					}
-				}
-			}
-
-			return exportPath;
 		}
 
 		private static string ExportPackage(IEngine engine, IEnumerable<App> apps, ExportOptions options)
@@ -111,6 +65,12 @@
 				var info = apps.Count() == 1 ? PackageInfo.FromApp(apps.First()) : PackageInfo.FromApp();
 				zip.CreateEntryFromText("AppInfo.xml", XmlConvert.SerializeObject(info));
 				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "DeploymentActions.xml"), "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<AppPackageDeploymentActions>\r\n  <DefaultProtocolVisios />\r\n  <ProductionProtocols />\r\n  <TemplatesToPreserve>\r\n    <AlarmTemplates />\r\n    <InformationTemplates />\r\n    <TrendTemplates />\r\n  </TemplatesToPreserve>\r\n</AppPackageDeploymentActions>");
+
+				// Package install options
+				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "InstallOptions.json"), JsonConvert.SerializeObject(new InstallOptions
+				{
+					OverwritePreviousVersions = options.OverwritePreviousVersions,
+				}));
 
 				var domModuleIds = new List<string>();
 				var images = new List<string>();
@@ -243,7 +203,11 @@
 			foreach (var script in scripts)
 			{
 				var scriptName = $"Script_{script}.xml";
-				zip.CreateEntryFromFile(Path.Combine(ScriptPath, scriptName), Path.Combine("AppInstallContent", "Scripts", script, scriptName));
+				var scriptPath = Path.Combine(ScriptPath, scriptName);
+				if (File.Exists(scriptPath))
+				{
+					zip.CreateEntryFromFile(Path.Combine(ScriptPath, scriptName), Path.Combine("AppInstallContent", "Scripts", script, scriptName));
+				}
 			}
 
 			return scripts;
@@ -257,7 +221,13 @@
 				if (!scriptReferences.ContainsKey(script))
 					scriptReferences.Add(script, new List<string>());
 				var scriptName = $"Script_{script}.xml";
-				var scriptFile = System.IO.File.ReadAllText(Path.Combine(ScriptPath, scriptName));
+				var scriptPath = Path.Combine(ScriptPath, scriptName);
+				if (!File.Exists(scriptPath))
+				{
+					continue;
+				}
+
+				var scriptFile = System.IO.File.ReadAllText(scriptPath);
 				XDocument doc = XDocument.Parse(scriptFile);
 				XNamespace ns = "http://www.skyline.be/automation";
 				var refParams = doc.Descendants(ns + "Param").Where(param => (string)param.Attribute("type") == "ref");
@@ -321,17 +291,19 @@
 	{
 		public bool IncludeVersions { get; set; }
 
-		public bool ExportPackage { get; set; }
+		public bool ExportPackage { get; } = true;
 
 		public bool ExportDomInstances { get; set; }
+
+		public bool OverwritePreviousVersions { get; set; }
 
 		public static ExportOptions FromDialog(ExportDialog dialog)
 		{
 			return new ExportOptions
 			{
 				IncludeVersions = dialog.ExportVersions.IsChecked,
-				//ExportPackage = dialog.ExportPackage.IsChecked,
 				ExportDomInstances = dialog.ExportDomInstances.IsChecked,
+				OverwritePreviousVersions = dialog.OverwritePreviousVersions.IsChecked,
 			};
 		}
 	}
