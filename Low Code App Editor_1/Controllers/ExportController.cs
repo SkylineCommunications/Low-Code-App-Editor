@@ -82,48 +82,85 @@
 					// Add the app as CompanionFiles
 					AddAppToArchive(zip, app, options);
 
-					engine.GenerateInformation($"Adding Scripts");
-
-					// Add the scripts used in the App
-					var scripts = AddScriptsToArchive(zip, app);
-
-					engine.GenerateInformation($"Adding Script dependencies");
-
-					// Add script dependencies
-					var appReferences = AddDependenciesToArchive(zip, app, scripts);
-					foreach (var pair in appReferences)
+					if (options.ExcludeScripts)
 					{
-						if (!scriptReferences.ContainsKey(pair.Key))
+						engine.GenerateInformation("Skipping Automation Scripts");
+					}
+					else
+					{
+						engine.GenerateInformation($"Adding Scripts");
+
+						// Add the scripts used in the App
+						var scripts = AddScriptsToArchive(zip, app);
+
+						engine.GenerateInformation($"Adding Script dependencies");
+
+						// Add script dependencies
+						var appReferences = AddDependenciesToArchive(zip, app, scripts);
+						foreach (var pair in appReferences)
 						{
-							scriptReferences.Add(pair.Key, pair.Value);
-						}
-						else
-						{
-							scriptReferences[pair.Key].AddRange(pair.Value);
+							if (!scriptReferences.ContainsKey(pair.Key))
+							{
+								scriptReferences.Add(pair.Key, pair.Value);
+							}
+							else
+							{
+								scriptReferences[pair.Key].AddRange(pair.Value);
+							}
 						}
 					}
 
-					// Add Dom definitions
-					domModuleIds.AddRangeUnique(app.LatestVersion.GetUsedDomModules());
+					if (!options.ExcludeDom)
+					{
+						// Add Dom definitions
+						domModuleIds.AddRangeUnique(app.LatestVersion.GetUsedDomModules());
+					}
 
-					// Add Images to companion files
-					images.AddRangeUnique(app.LatestVersion.GetUsedImages());
+					if (!options.ExcludeImages)
+					{
+						// Add Images to companion files
+						images.AddRangeUnique(app.LatestVersion.GetUsedImages());
+					}
 
-					// Add Theme
-					themes.AddRangeUnique(app.LatestVersion.GetUsedThemes());
+					if (!options.ExcludeThemes)
+					{
+						// Add Theme
+						themes.AddRangeUnique(app.LatestVersion.GetUsedThemes());
+					}
 				}
 
 				// Add DOM modules
-				engine.GenerateInformation($"Adding DOM modules");
-				AddDomToArchive(engine, zip, domModuleIds, options);
+				if (options.ExcludeDom)
+				{
+					engine.GenerateInformation($"Skipping DOM modules");
+				}
+				else
+				{
+					engine.GenerateInformation($"Adding DOM modules");
+					AddDomToArchive(engine, zip, domModuleIds, options);
+				}
 
-				// Add Images
-				engine.GenerateInformation($"Adding Images");
-				AddImagesToArchive(zip, images);
+				if (options.ExcludeImages)
+				{
+					engine.GenerateInformation($"Skipping Images");
+				}
+				else
+				{
+					// Add Images
+					engine.GenerateInformation($"Adding Images");
+					AddImagesToArchive(zip, images);
+				}
 
-				// Add Themes
-				engine.GenerateInformation($"Adding Themes");
-				AddThemesToArchive(zip, themes);
+				if (options.ExcludeThemes)
+				{
+					engine.GenerateInformation($"Skipping Themes");
+				}
+				else
+				{
+					// Add Themes
+					engine.GenerateInformation($"Adding Themes");
+					AddThemesToArchive(zip, themes);
+				}
 
 				engine.GenerateInformation($"Adding Installer code");
 
@@ -275,7 +312,7 @@
 			usedThemesArray.Clear();
 
 			// Add the ones needed for the package to the cloned
-			foreach(var theme in themes)
+			foreach (var theme in themes)
 			{
 				var usedTheme = allThemes.First(t => t["Name"].Value<string>() == theme.Name);
 				usedThemesArray.Add(usedTheme);
@@ -293,17 +330,29 @@
 
 		public bool ExportPackage { get; } = true;
 
+		public bool OverwritePreviousVersions { get; set; }
+
+		public bool ExcludeScripts { get; set; }
+
+		public bool ExcludeDom { get; set; }
+
 		public bool ExportDomInstances { get; set; }
 
-		public bool OverwritePreviousVersions { get; set; }
+		public bool ExcludeImages { get; set; }
+
+		public bool ExcludeThemes { get; set; }
 
 		public static ExportOptions FromDialog(ExportDialog dialog)
 		{
 			return new ExportOptions
 			{
 				IncludeVersions = dialog.ExportVersions.IsChecked,
-				ExportDomInstances = dialog.ExportDomInstances.IsChecked,
 				OverwritePreviousVersions = dialog.OverwritePreviousVersions.IsChecked,
+				ExcludeScripts = dialog.ExcludeScripts.IsChecked,
+				ExcludeDom = dialog.ExcludeDom.IsChecked,
+				ExportDomInstances = dialog.ExportDomInstances.IsChecked,
+				ExcludeImages = dialog.ExcludeImages.IsChecked,
+				ExcludeThemes = dialog.ExcludeThemes.IsChecked,
 			};
 		}
 	}

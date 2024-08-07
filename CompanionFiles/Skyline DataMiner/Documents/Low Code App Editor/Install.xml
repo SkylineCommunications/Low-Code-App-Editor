@@ -375,6 +375,12 @@ namespace Install_1.DOM
 		{
 			Log("Installing DOM items");
 
+			if(!Directory.Exists(context.AppContentPath + DOM_FOLDERPATH))
+			{
+				Log("No DOM Modules found, skipping this step.");
+				return;
+			}
+
 			foreach (var exportedDomJson in Directory.GetFiles(context.AppContentPath + DOM_FOLDERPATH, "*.json"))
 			{
 				Log("Installing " + exportedDomJson);
@@ -491,6 +497,12 @@ namespace Install_1.Images
 		public void InstallDefaultContent()
 		{
 			Log("Low Code App Images Installation");
+
+			if (!Directory.Exists(context.AppContentPath + Images_FOLDERPATH))
+			{
+				Log("No Images found, skipping this step.");
+				return;
+			}
 
 			// Check if images folder exists
 			if (!Directory.Exists(Images_Directory))
@@ -840,6 +852,12 @@ namespace Install_1.Themes
 		public void InstallDefaultContent()
 		{
 			Log("Low Code App Themes Installation");
+
+			if (!File.Exists(context.AppContentPath + Themes_Context_PATH))
+			{
+				Log("No Themes found, skipping this step.");
+				return;
+			}
 
 			var appThemesContent = File.ReadAllText(context.AppContentPath + Themes_Context_PATH);
 			var appThemes = JObject.Parse(appThemesContent)["Themes"] as JArray;

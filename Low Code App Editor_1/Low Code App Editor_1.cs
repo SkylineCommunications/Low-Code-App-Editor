@@ -177,6 +177,15 @@ namespace Low_Code_App_Editor_1
 			{
 				controller.ShowDialog(overview);
 			};
+			export.ExcludeDom.UnChecked += (sender, e) =>
+			{
+				export.ExportDomInstances.IsEnabled = true;
+			};
+			export.ExcludeDom.Checked += (sender, e) =>
+			{
+				export.ExportDomInstances.IsChecked = false;
+				export.ExportDomInstances.IsEnabled = false;
+			};
 			export.ExportButton.Pressed += (sender, e) =>
 			{
 				var selection = export.Apps.CheckedOptions;
