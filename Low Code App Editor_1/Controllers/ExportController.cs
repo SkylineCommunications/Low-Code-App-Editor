@@ -189,7 +189,7 @@ namespace Low_Code_App_Editor_1.Controllers
 				sb.AppendLine($"File Version:");
 
 				// Add scripts
-				foreach (var file in zip.GetEntries("AppInstallContent\\Scripts"))
+				foreach (var file in zip.GetEntries("AppInstallContent\\Scripts").Where(x => !x.FullName.EndsWith("\\")))
 				{
 					sb.AppendLine($"Script\\{Path.GetDirectoryName(file.FullName)}");
 				}
@@ -204,7 +204,7 @@ namespace Low_Code_App_Editor_1.Controllers
 				}
 
 				// Add CompanionFiles
-				foreach (var file in zip.GetEntries("AppInstallContent\\CompanionFiles"))
+				foreach (var file in zip.GetEntries("AppInstallContent\\CompanionFiles").Where(x => !x.FullName.EndsWith("\\")))
 				{
 					sb.AppendLine($"CompanionFile\\{file.FullName.Replace("AppInstallContent\\CompanionFiles\\", string.Empty)}");
 				}
