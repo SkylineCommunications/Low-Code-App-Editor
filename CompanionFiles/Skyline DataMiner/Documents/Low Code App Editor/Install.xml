@@ -70,15 +70,36 @@ DATE		VERSION		AUTHOR			COMMENTS
 ****************************************************************************
 */
 using System;
+using System.IO;
 
+using Install_1;
 using Install_1.DOM;
 using Install_1.Images;
 using Install_1.LCA;
 using Install_1.Themes;
 
+using Newtonsoft.Json;
+
 using Skyline.AppInstaller;
 using Skyline.DataMiner.Automation;
 using Skyline.DataMiner.Net.AppPackages;
+
+//---------------------------------
+// Constants.cs
+//---------------------------------
+namespace Install_1
+{
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+	using System.Text;
+	using System.Threading.Tasks;
+
+	public class Constants
+	{
+		public const string InstallOptionsFileName = "InstallOptions.json";
+	}
+}
 
 //---------------------------------
 // DOM\DomEditorException.cs
@@ -336,17 +357,19 @@ namespace Install_1.DOM
 //---------------------------------
 namespace Install_1.DOM
 {
-	using System;
-	using System.IO;
+    using System;
+    using System.IO;
+    using Install_1;
 
-	using Skyline.DataMiner.Net;
-	using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net;
+    using Skyline.DataMiner.Net.AppPackages;
 
-	public class DomInstaller
+    public class DomInstaller
 	{
 		private const string DOM_FOLDERPATH = @"CompanionFiles\DOM\";
 
 		private readonly AppInstallContext context;
+		private readonly InstallOptions options;
 		private readonly Action<string> logMethod;
 
 		private readonly DomImporter domImporter;
@@ -358,11 +381,13 @@ namespace Install_1.DOM
 		/// <param name="context">
 		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
 		/// </param>
+		/// <param name="options">The install options coming from the Low Code App Editor script.</param>
 		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
-		public DomInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
+		public DomInstaller(IConnection connection, AppInstallContext context, InstallOptions options, Action<string> logMethod)
 		{
 			// Null checks still required / valid input data check
 			this.context = context;
+			this.options = options;
 			this.logMethod = logMethod;
 			domImporter = new DomImporter(connection.HandleMessages);
 			domImporter.Progress += DomImporter_Progress;
@@ -420,11 +445,26 @@ namespace Install_1.DOM
 	}
 }
 //---------------------------------
+// Enums\FileSyncType.cs
+//---------------------------------
+namespace Install_1.Enums
+{
+	internal enum FileSyncType
+	{
+		Changed = 32,
+		Removed = 33,
+		Added = 34,
+	}
+}
+
+//---------------------------------
 // Extensions.cs
 //---------------------------------
 namespace Install_1
 {
 	using System;
+
+	using Install_1.Enums;
 
 	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.Exceptions;
@@ -433,13 +473,13 @@ namespace Install_1
 
 	internal static class Extensions
 	{
-		public static void SyncFile(this IConnection connection, string filePath, Action<string> logger = null)
+		public static void SyncFile(this IConnection connection, string filePath, FileSyncType fileSyncType, Action<string> logger = null)
 		{
 			SetDataMinerInfoMessage message = new SetDataMinerInfoMessage
 			{
 				What = 41,
 				StrInfo1 = filePath,
-				IInfo2 = 34,
+				IInfo2 = (int)fileSyncType,
 			};
 
 			var response = connection.HandleSingleResponseMessage(message);
@@ -461,19 +501,22 @@ namespace Install_1
 //---------------------------------
 namespace Install_1.Images
 {
-	using System;
-	using System.IO;
+    using System;
+    using System.IO;
+    using Install_1;
+    using Install_1.Enums;
 
-	using Skyline.DataMiner.Net;
-	using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net;
+    using Skyline.DataMiner.Net.AppPackages;
 
-	public class ImageInstaller
+    public class ImageInstaller
 	{
 		private const string Images_FOLDERPATH = @"CompanionFiles\Images";
 		private const string Images_Directory = @"C:\Skyline DataMiner\Dashboards\_IMAGES";
 
 		private readonly IConnection connection;
 		private readonly AppInstallContext context;
+		private readonly InstallOptions options;
 		private readonly Action<string> logMethod;
 
 		/// <summary>
@@ -483,11 +526,13 @@ namespace Install_1.Images
 		/// <param name="context">
 		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
 		/// </param>
+		/// <param name="options">The install options coming from the Low Code App Editor script.</param>
 		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
-		public ImageInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
+		public ImageInstaller(IConnection connection, AppInstallContext context, InstallOptions options, Action<string> logMethod)
 		{
 			this.connection = connection;
 			this.context = context;
+			this.options = options;
 			this.logMethod = logMethod;
 		}
 
@@ -517,15 +562,31 @@ namespace Install_1.Images
 			{
 				var image = images[i];
 				var path = Path.Combine(Images_Directory, Path.GetFileName(image));
+				FileSyncType syncType;
 				if (File.Exists(path))
 				{
-					Log($"[{i + 1}/{images.Length}] '{image}' already exists, ignoring this image.");
+					if (options.OverwriteImages)
+					{
+						File.Copy(image, path, true);
+						syncType = FileSyncType.Added;
+						Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
+					}
+					else
+					{
+						Log($"[{i + 1}/{images.Length}] '{image}' already exists, ignoring this image.");
+						continue;
+					}
 				}
 				else
 				{
 					File.Copy(image, path);
-					connection.SyncFile(path);
+					syncType = FileSyncType.Added;
 					Log($"[{i + 1}/{images.Length}] Installed {Path.GetFileName(image)}");
+				}
+
+				if (options.SyncImages)
+				{
+					connection.SyncFile(path, syncType);
 				}
 			}
 		}
@@ -567,19 +628,20 @@ internal class Script
 			installer.InstallDefaultContent();
 
 			// Custom installation logic can be added here for each individual install package.
-			var domInstaller = new DomInstaller(Engine.SLNetRaw, context, installer.Log);
+			var installOptions = JsonConvert.DeserializeObject<InstallOptions>(File.ReadAllText(context.AppContentPath + Constants.InstallOptionsFileName));
+			var domInstaller = new DomInstaller(Engine.SLNetRaw, context, installOptions, installer.Log);
 			domInstaller.InstallDefaultContent();
 
 			// Install app themes
-			var themeInstaller = new ThemeInstaller(Engine.SLNetRaw, context, installer.Log);
+			var themeInstaller = new ThemeInstaller(Engine.SLNetRaw, context, installOptions, installer.Log);
 			themeInstaller.InstallDefaultContent();
 
 			// Create image installer
-			var imageInstaller = new ImageInstaller(Engine.SLNetRaw, context, installer.Log);
+			var imageInstaller = new ImageInstaller(Engine.SLNetRaw, context, installOptions, installer.Log);
 			imageInstaller.InstallDefaultContent();
 
 			// Install the low code app
-			var lcaInstaller = new LcaInstaller(context, installer.Log);
+			var lcaInstaller = new LcaInstaller(Engine.SLNetRaw, context, installOptions, installer.Log);
 			lcaInstaller.InstallDefaultContent();
 		}
 		catch (Exception e)
@@ -589,19 +651,34 @@ internal class Script
 	}
 }
 //---------------------------------
-// LCA\InstallOptions.cs
+// InstallOptions.cs
 //---------------------------------
-// Ignore Spelling: LCA
+// Ignore Spelling: LCA App Dms
 
-namespace Install_1.LCA
+namespace Install_1
 {
-	using Newtonsoft.Json;
+    using Newtonsoft.Json;
 
-	public class InstallOptions
-	{
-		[JsonProperty("Overwrite")]
-		public bool OverwritePreviousVersions { get; set; }
-	}
+    public class InstallOptions
+    {
+        [JsonProperty("Overwrite")]
+        public bool OverwritePreviousVersions { get; set; }
+
+        [JsonProperty("sync_app")]
+        public bool SyncAppToDms { get; set; }
+
+        [JsonProperty("sync_images")]
+        public bool SyncImages { get; set; }
+
+        [JsonProperty("overwrite_images")]
+        public bool OverwriteImages { get; set; }
+
+        [JsonProperty("sync_themes")]
+        public bool SyncThemes { get; set; }
+
+        [JsonProperty("overwrite_themes")]
+        public bool OverwriteThemes { get; set; }
+    }
 }
 
 //---------------------------------
@@ -611,22 +688,26 @@ namespace Install_1.LCA
 
 namespace Install_1.LCA
 {
-	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Linq;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using Install_1;
+    using Install_1.Enums;
 
-	using Newtonsoft.Json;
-	using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
-	using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net;
+    using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net.Messages.SLDataGateway;
 
-	public class LcaInstaller
+    public class LcaInstaller
 	{
-		private const string InstallOptionsFileName = "InstallOptions.json";
 		private const string LCA_FOLDERPATH = @"CompanionFiles\LCA";
 		private const string ApplicationsDirectory = @"C:\Skyline DataMiner\applications";
 
+		private readonly IConnection connection;
 		private readonly AppInstallContext context;
 		private readonly InstallOptions options;
 		private readonly Action<string> logMethod;
@@ -634,52 +715,19 @@ namespace Install_1.LCA
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LcaInstaller"/> class.
 		/// </summary>
+		/// <param name="connection">SLNet raw connection. Can be obtained via Engine object.</param>
 		/// <param name="context">
 		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
 		/// </param>
+		/// <param name="options">The install options coming from the Low Code App Editor script.</param>
 		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
-		public LcaInstaller(AppInstallContext context, Action<string> logMethod)
+		public LcaInstaller(IConnection connection, AppInstallContext context, InstallOptions options, Action<string> logMethod)
 		{
 			// Null checks still required / valid input data check
+			this.connection = connection;
 			this.context = context;
-			this.options = JsonConvert.DeserializeObject<InstallOptions>(File.ReadAllText(context.AppContentPath + InstallOptionsFileName));
+			this.options = options;
 			this.logMethod = logMethod;
-		}
-
-		public static void CopyFolder(string sourceFolderPath, string destinationFolderPath, bool overwrite = false)
-		{
-			DirectoryInfo sourceDir = new DirectoryInfo(sourceFolderPath);
-
-			// If the destination folder doesn't exist, create it
-			if (!Directory.Exists(destinationFolderPath))
-			{
-				Directory.CreateDirectory(destinationFolderPath);
-			}
-
-			// Copy files in the current directory
-			foreach (FileInfo file in sourceDir.GetFiles())
-			{
-				string destFile = Path.Combine(destinationFolderPath, file.Name);
-				file.CopyTo(destFile, overwrite);
-			}
-
-			// Recursively copy subdirectories
-			foreach (DirectoryInfo subdir in sourceDir.GetDirectories())
-			{
-				string destSubdir = Path.Combine(destinationFolderPath, subdir.Name);
-				CopyFolder(subdir.FullName, destSubdir, overwrite);
-			}
-		}
-
-		/// <summary>
-		/// Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
-		/// The message will also be shown during installation with the DataMiner Application
-		/// Package Installer from the Skyline TaskBar Utility.
-		/// </summary>
-		/// <param name="message">A message you want to log or show during installation.</param>
-		public void Log(string message)
-		{
-			logMethod(message);
 		}
 
 		/// <summary>
@@ -702,7 +750,7 @@ namespace Install_1.LCA
 
 				if (options.OverwritePreviousVersions)
 				{
-					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)), true);
+					CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)), true, options.SyncAppToDms);
 				}
 				else
 				{
@@ -733,17 +781,21 @@ namespace Install_1.LCA
 				var oldId = Path.GetFileName(app);
 				var newId = Guid.NewGuid().ToString();
 				var destPath = Path.Combine(ApplicationsDirectory, newId);
-				CopyFolder(app, destPath, false);
+				CopyFolder(app, destPath, false, options.SyncAppToDms);
 				foreach (var versionPath in Directory.GetDirectories(destPath))
 				{
 					var configPath = Path.Combine(versionPath, "App.config.json");
 					var file = File.ReadAllText(configPath);
 					File.WriteAllText(configPath, file.Replace(oldId, newId));
+					if (options.SyncAppToDms)
+					{
+						connection.SyncFile(file, FileSyncType.Changed);
+					}
 				}
 			}
 			else
 			{
-				CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)), false);
+				CopyFolder(app, Path.Combine(ApplicationsDirectory, Path.GetFileName(app)), false, options.SyncAppToDms);
 			}
 
 			return newName;
@@ -806,6 +858,66 @@ namespace Install_1.LCA
 				Log($"Could not set name of app with ID: {appId}, to {name}");
 			}
 		}
+
+		/// <summary>
+		/// Copy a folder recursively to the destination folder.
+		/// </summary>
+		/// <param name="sourceFolderPath">The source folder.</param>
+		/// <param name="destinationFolderPath">The destination folder.</param>
+		/// <param name="overwrite"><see langword="true"/> will overwrite existing files. <see langword="false"/> to leave the existing files.</param>
+		/// /// <param name="syncFiles"><see langword="true"/> will send a sync the files to the other dma's in the dms. <see langword="false"/> to not sync files.</param>
+		private void CopyFolder(string sourceFolderPath, string destinationFolderPath, bool overwrite = false, bool syncFiles = false)
+		{
+			DirectoryInfo sourceDir = new DirectoryInfo(sourceFolderPath);
+
+			// If the destination folder doesn't exist, create it
+			if (!Directory.Exists(destinationFolderPath))
+			{
+				Directory.CreateDirectory(destinationFolderPath);
+			}
+
+			// Copy files in the current directory
+			foreach (FileInfo file in sourceDir.GetFiles())
+			{
+				var destFile = Path.Combine(destinationFolderPath, file.Name);
+				var syncType = FileSyncType.Changed;
+				if (!File.Exists(destFile))
+				{
+					syncType = FileSyncType.Added;
+				}
+
+				if(File.Exists(destFile) && !overwrite)
+				{
+					// If the file exist and overwrite is not true, leave the file be.
+					continue;
+				}
+
+				file.CopyTo(destFile, overwrite);
+
+				if (syncFiles)
+				{
+					connection.SyncFile(destFile, syncType);
+				}
+			}
+
+			// Recursively copy subdirectories
+			foreach (DirectoryInfo subdir in sourceDir.GetDirectories())
+			{
+				string destSubdir = Path.Combine(destinationFolderPath, subdir.Name);
+				CopyFolder(subdir.FullName, destSubdir, overwrite, syncFiles);
+			}
+		}
+
+		/// <summary>
+		/// Logs the provided message into the logfile "C:\Skyline DataMiner\Logging\SLAppPackageInstaller.txt".
+		/// The message will also be shown during installation with the DataMiner Application
+		/// Package Installer from the Skyline TaskBar Utility.
+		/// </summary>
+		/// <param name="message">A message you want to log or show during installation.</param>
+		private void Log(string message)
+		{
+			logMethod(message);
+		}
 	}
 }
 //---------------------------------
@@ -813,22 +925,24 @@ namespace Install_1.LCA
 //---------------------------------
 namespace Install_1.Themes
 {
-	using System;
-	using System.IO;
-	using System.Linq;
+    using System;
+    using System.IO;
+    using System.Linq;
+    using Install_1;
 
-	using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Linq;
 
-	using Skyline.DataMiner.Net;
-	using Skyline.DataMiner.Net.AppPackages;
+    using Skyline.DataMiner.Net;
+    using Skyline.DataMiner.Net.AppPackages;
 
-	public class ThemeInstaller
+    public class ThemeInstaller
 	{
 		private const string Themes_Context_PATH = @"CompanionFiles\Themes\Themes.json";
 		private const string Themes_DataMiner_Path = @"C:\Skyline DataMiner\dashboards\Themes.json";
 
 		private readonly IConnection connection;
 		private readonly AppInstallContext context;
+		private readonly InstallOptions options;
 		private readonly Action<string> logMethod;
 
 		/// <summary>
@@ -838,11 +952,13 @@ namespace Install_1.Themes
 		/// <param name="context">
 		/// Provides the context to which the installer has access to. Skyline.DataMiner.Net.AppPackages.AppInstallContext object is automatically provided by the Automation script.
 		/// </param>
+		/// <param name="options">The install options coming from the Low Code App Editor script.</param>
 		/// <param name="logMethod">The app installers log method, used to write to the SLAppPackageInstaller.txt.</param>
-		public ThemeInstaller(IConnection connection, AppInstallContext context, Action<string> logMethod)
+		public ThemeInstaller(IConnection connection, AppInstallContext context, InstallOptions options, Action<string> logMethod)
 		{
 			this.connection = connection;
 			this.context = context;
+			this.options = options;
 			this.logMethod = logMethod;
 		}
 
@@ -877,6 +993,11 @@ namespace Install_1.Themes
 			{
 				Log("C:\\Skyline DataMiner\\dashboards\\Themes.json file does not exists, creating it.");
 				File.WriteAllText(Themes_DataMiner_Path, appThemesContent);
+				if (options.SyncThemes)
+				{
+					connection.SyncFile(Themes_DataMiner_Path, Enums.FileSyncType.Added);
+				}
+
 				return;
 			}
 
@@ -895,14 +1016,13 @@ namespace Install_1.Themes
 				var existingTheme = allThemes.FirstOrDefault(t => t["Name"].Value<string>() == appThemeName);
 				if (existingTheme != null)
 				{
-					var existingThemeId = existingTheme["ID"].Value<int>();
-					if (existingThemeId != appThemeId && allThemeIds.Exists(x => x == appThemeId))
+					if (!options.OverwriteThemes)
 					{
-						var newId = allThemeIds.Max() + 1;
-						theme["ID"] = newId;
-						appThemeId = newId;
-						allThemeIds.Add(newId);
+						continue;
 					}
+
+					var existingThemeId = existingTheme["ID"].Value<int>();
+					theme["ID"] = existingThemeId;
 
 					var existingThemeIndex = allThemes.IndexOf(existingTheme);
 					allThemes[existingThemeIndex] = theme;
@@ -924,7 +1044,10 @@ namespace Install_1.Themes
 			}
 
 			File.WriteAllText(Themes_DataMiner_Path, allThemesFull.ToString());
-			connection.SyncFile(Themes_DataMiner_Path);
+			if (options.SyncThemes)
+			{
+				connection.SyncFile(Themes_DataMiner_Path, Enums.FileSyncType.Changed);
+			}
 		}
 
 		/// <summary>

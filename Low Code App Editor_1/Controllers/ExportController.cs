@@ -1,4 +1,6 @@
-﻿namespace Low_Code_App_Editor_1.Controllers
+﻿// Ignore Spelling: Dms App
+
+namespace Low_Code_App_Editor_1.Controllers
 {
 	using System;
 	using System.Collections.Generic;
@@ -13,16 +15,13 @@
 	using Low_Code_App_Editor_1.LCA;
 	using Low_Code_App_Editor_1.Package;
 	using Low_Code_App_Editor_1.UI;
-	using Low_Code_App_Editor_1.Json;
 
 	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
 
 	using Skyline.DataMiner.Automation;
-	using Skyline.DataMiner.Net.AppPackages;
-	using Skyline.DataMiner.Net.Apps.FileTime;
 	using Skyline.DataMiner.Net.Apps.Modules;
 	using Skyline.DataMiner.Web.Common.v1.Dashboards;
-	using Newtonsoft.Json.Linq;
 
 	public class ExportController
 	{
@@ -67,10 +66,20 @@
 				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "DeploymentActions.xml"), "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<AppPackageDeploymentActions>\r\n  <DefaultProtocolVisios />\r\n  <ProductionProtocols />\r\n  <TemplatesToPreserve>\r\n    <AlarmTemplates />\r\n    <InformationTemplates />\r\n    <TrendTemplates />\r\n  </TemplatesToPreserve>\r\n</AppPackageDeploymentActions>");
 
 				// Package install options
-				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "InstallOptions.json"), JsonConvert.SerializeObject(new InstallOptions
-				{
-					OverwritePreviousVersions = options.OverwritePreviousVersions,
-				}));
+				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "InstallOptions.json"), JsonConvert.SerializeObject(
+					new InstallOptions
+					{
+						OverwritePreviousVersions = options.OverwritePreviousVersions,
+						SyncAppToDms = options.SyncAppToDms,
+						SyncImages = options.SyncImages,
+						OverwriteImages = options.OverrideImages,
+						SyncThemes = options.SyncThemes,
+						OverwriteThemes = options.OverwriteThemes,
+					},
+					new JsonSerializerSettings
+					{
+						Formatting = Formatting.Indented,
+					}));
 
 				var domModuleIds = new List<string>();
 				var images = new List<string>();
@@ -332,6 +341,8 @@
 
 		public bool OverwritePreviousVersions { get; set; }
 
+		public bool SyncAppToDms { get; set; }
+
 		public bool ExcludeScripts { get; set; }
 
 		public bool ExcludeDom { get; set; }
@@ -340,7 +351,15 @@
 
 		public bool ExcludeImages { get; set; }
 
+		public bool SyncImages { get; set; }
+
+		public bool OverrideImages { get; set; }
+
 		public bool ExcludeThemes { get; set; }
+
+		public bool SyncThemes { get; set; }
+
+		public bool OverwriteThemes { get; set; }
 
 		public static ExportOptions FromDialog(ExportDialog dialog)
 		{
@@ -348,11 +367,14 @@
 			{
 				IncludeVersions = dialog.ExportVersions.IsChecked,
 				OverwritePreviousVersions = dialog.OverwritePreviousVersions.IsChecked,
+				SyncAppToDms = dialog.SyncAppToDms.IsChecked,
 				ExcludeScripts = dialog.ExcludeScripts.IsChecked,
 				ExcludeDom = dialog.ExcludeDom.IsChecked,
 				ExportDomInstances = dialog.ExportDomInstances.IsChecked,
 				ExcludeImages = dialog.ExcludeImages.IsChecked,
+				SyncImages = dialog.SyncImages.IsChecked,
 				ExcludeThemes = dialog.ExcludeThemes.IsChecked,
+				SyncThemes = dialog.SyncThemes.IsChecked,
 			};
 		}
 	}

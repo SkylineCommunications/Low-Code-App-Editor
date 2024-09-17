@@ -186,6 +186,30 @@ namespace Low_Code_App_Editor_1
 				export.ExportDomInstances.IsChecked = false;
 				export.ExportDomInstances.IsEnabled = false;
 			};
+			export.ExcludeImages.UnChecked += (sender, e) =>
+			{
+				export.SyncImages.IsEnabled = true;
+				export.OverwriteImages.IsEnabled = true;
+			};
+			export.ExcludeImages.Checked += (sender, e) =>
+			{
+				export.SyncImages.IsEnabled = false;
+				export.SyncImages.IsChecked = false;
+				export.OverwriteImages.IsEnabled = false;
+				export.OverwriteImages.IsChecked = false;
+			};
+			export.ExcludeThemes.UnChecked += (sender, e) =>
+			{
+				export.SyncThemes.IsEnabled = true;
+				export.OverwriteThemes.IsEnabled = true;
+			};
+			export.ExcludeThemes.Checked += (sender, e) =>
+			{
+				export.SyncThemes.IsEnabled = false;
+				export.SyncThemes.IsChecked = false;
+				export.OverwriteThemes.IsEnabled = false;
+				export.OverwriteThemes.IsChecked = false;
+			};
 			export.ExportButton.Pressed += (sender, e) =>
 			{
 				var selection = export.Apps.CheckedOptions;
