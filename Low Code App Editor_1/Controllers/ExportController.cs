@@ -40,7 +40,6 @@ namespace Low_Code_App_Editor_1.Controllers
 		{
 			var now = DateTime.Now;
 
-			var scriptReferences = new Dictionary<string, List<string>>();
 			var exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
 			if (apps.Count() == 1)
 			{
@@ -98,77 +97,32 @@ namespace Low_Code_App_Editor_1.Controllers
 					else
 					{
 						engine.GenerateInformation($"Adding Scripts");
-
-						// Add the scripts used in the App
-						var scripts = AddScriptsToArchive(zip, app);
-
-						engine.GenerateInformation($"Adding Script dependencies");
-
-						// Add script dependencies
-						var appReferences = AddDependenciesToArchive(zip, app, scripts);
-						foreach (var pair in appReferences)
-						{
-							if (!scriptReferences.ContainsKey(pair.Key))
-							{
-								scriptReferences.Add(pair.Key, pair.Value);
-							}
-							else
-							{
-								scriptReferences[pair.Key].AddRange(pair.Value);
-							}
-						}
+						AddScriptsToArchive(zip, app);
 					}
 
 					if (!options.ExcludeDom)
 					{
 						// Add Dom definitions
+						engine.GenerateInformation($"Adding DOM modules, for app '{app.Name}'");
 						domModuleIds.AddRangeUnique(app.LatestVersion.GetUsedDomModules());
+						AddDomToArchive(engine, zip, domModuleIds, options);
 					}
 
 					if (!options.ExcludeImages)
 					{
 						// Add Images to companion files
+						engine.GenerateInformation($"Adding Images, for app '{app.Name}'");
 						images.AddRangeUnique(app.LatestVersion.GetUsedImages());
+						AddImagesToArchive(zip, images);
 					}
 
 					if (!options.ExcludeThemes)
 					{
 						// Add Theme
+						engine.GenerateInformation($"Adding Themes, for app '{app.Name}'");
 						themes.AddRangeUnique(app.LatestVersion.GetUsedThemes());
+						AddThemesToArchive(zip, themes);
 					}
-				}
-
-				// Add DOM modules
-				if (options.ExcludeDom)
-				{
-					engine.GenerateInformation($"Skipping DOM modules");
-				}
-				else
-				{
-					engine.GenerateInformation($"Adding DOM modules");
-					AddDomToArchive(engine, zip, domModuleIds, options);
-				}
-
-				if (options.ExcludeImages)
-				{
-					engine.GenerateInformation($"Skipping Images");
-				}
-				else
-				{
-					// Add Images
-					engine.GenerateInformation($"Adding Images");
-					AddImagesToArchive(zip, images);
-				}
-
-				if (options.ExcludeThemes)
-				{
-					engine.GenerateInformation($"Skipping Themes");
-				}
-				else
-				{
-					// Add Themes
-					engine.GenerateInformation($"Adding Themes");
-					AddThemesToArchive(zip, themes);
 				}
 
 				engine.GenerateInformation($"Adding Installer code");
@@ -194,13 +148,9 @@ namespace Low_Code_App_Editor_1.Controllers
 					sb.AppendLine($"Script\\{Path.GetDirectoryName(file.FullName)}");
 				}
 
-				// Add Assemblies
-				foreach (var pair in scriptReferences)
+				foreach(var dependency in zip.GetEntries("AppInstallContent\\Assemblies").Where(x => !x.FullName.EndsWith("\\")))
 				{
-					foreach (var reference in pair.Value)
-					{
-						sb.AppendLine($"Assembly\\{Path.GetDirectoryName(reference)} for automationscript:{pair.Key}");
-					}
+					sb.AppendLine(dependency.FullName);
 				}
 
 				// Add CompanionFiles
@@ -243,50 +193,86 @@ namespace Low_Code_App_Editor_1.Controllers
 			}
 		}
 
-		private static List<string> AddScriptsToArchive(ZipArchive zip, App app)
+		private static void AddScriptsToArchive(ZipArchive zip, App app)
 		{
 			var scripts = app.LatestVersion.GetUsedScripts();
+			var addedFiles = new List<string>();
 			foreach (var script in scripts)
 			{
-				var scriptName = $"Script_{script}.xml";
-				var scriptPath = Path.Combine(ScriptPath, scriptName);
-				if (File.Exists(scriptPath))
-				{
-					zip.CreateEntryFromFile(Path.Combine(ScriptPath, scriptName), Path.Combine("AppInstallContent", "Scripts", script, scriptName));
-				}
+				AddScriptToArchive(zip, app, script, addedFiles);
 			}
-
-			return scripts;
 		}
 
-		private static Dictionary<string, List<string>> AddDependenciesToArchive(ZipArchive zip, App app, IEnumerable<string> scripts)
+		private static void AddScriptToArchive(ZipArchive zip, App app, string script, List<string> addedFiles)
 		{
-			var scriptReferences = new Dictionary<string, List<string>>();
-			foreach (var script in scripts)
+			var scriptName = $"Script_{script}.xml";
+			var scriptPath = Path.Combine(ScriptPath, scriptName);
+			if (File.Exists(scriptPath))
 			{
-				if (!scriptReferences.ContainsKey(script))
-					scriptReferences.Add(script, new List<string>());
-				var scriptName = $"Script_{script}.xml";
-				var scriptPath = Path.Combine(ScriptPath, scriptName);
-				if (!File.Exists(scriptPath))
+				if(addedFiles.Exists(x => x == $"AppInstallContent\\Scripts\\{script}\\Script_{script}.xml"))
+				{
+					return;
+				}
+
+				zip.CreateEntryFromFile(Path.Combine(ScriptPath, scriptName), Path.Combine("AppInstallContent", "Scripts", script, scriptName));
+				addedFiles.Add(Path.Combine("AppInstallContent", "Scripts", script, scriptName));
+				AddDependenciesToArchive(zip, app, script, addedFiles);
+				AddScriptReferencesToArchive(zip, app, script, addedFiles);
+			}
+		}
+
+		private static void AddScriptReferencesToArchive(ZipArchive zip, App app, string script, List<string> addedFiles)
+		{
+			var scriptName = $"Script_{script}.xml";
+			var scriptPath = Path.Combine(ScriptPath, scriptName);
+			if (!File.Exists(scriptPath))
+			{
+				return;
+			}
+
+			var scriptFile = File.ReadAllText(scriptPath);
+			XDocument doc = XDocument.Parse(scriptFile);
+			XNamespace ns = "http://www.skyline.be/automation";
+			var refParams = doc.Descendants(ns + "Param").Where(param => (string)param.Attribute("type") == "scriptRef");
+			foreach (var reference in refParams.Select(refParam => refParam.Value))
+			{
+				var split = reference.Split(':');
+				var referenceScriptName = split[0];
+				if (addedFiles.Exists(x => x == $"AppInstallContent\\Scripts\\{referenceScriptName}\\Script_{referenceScriptName}.xml"))
 				{
 					continue;
 				}
 
-				var scriptFile = System.IO.File.ReadAllText(scriptPath);
-				XDocument doc = XDocument.Parse(scriptFile);
-				XNamespace ns = "http://www.skyline.be/automation";
-				var refParams = doc.Descendants(ns + "Param").Where(param => (string)param.Attribute("type") == "ref");
-				foreach (var reference in refParams.Select(refParam => refParam.Value))
+				AddScriptToArchive(zip, app, referenceScriptName, addedFiles);
+			}
+		}
+
+		private static void AddDependenciesToArchive(ZipArchive zip, App app, string script, List<string> addedFiles)
+		{
+			var scriptName = $"Script_{script}.xml";
+			var scriptPath = Path.Combine(ScriptPath, scriptName);
+			if (!File.Exists(scriptPath))
+			{
+				return;
+			}
+
+			var scriptFile = File.ReadAllText(scriptPath);
+			XDocument doc = XDocument.Parse(scriptFile);
+			XNamespace ns = "http://www.skyline.be/automation";
+			var refParams = doc.Descendants(ns + "Param").Where(param => (string)param.Attribute("type") == "ref");
+			foreach (var reference in refParams.Select(refParam => refParam.Value))
+			{
+				if (addedFiles.Exists(x => x == reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies")))
 				{
-					if (reference.StartsWith(DllImportPath))
-					{
-						scriptReferences[script].Add(reference);
-						zip.CreateEntryFromFile(reference, reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
-					}
+					continue;
+				}
+
+				if (reference.StartsWith(DllImportPath))
+				{
+					zip.CreateEntryFromFile(reference, reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
+					addedFiles.Add(reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
 				}
 			}
-			return scriptReferences;
 		}
 
 		private static void AddDomToArchive(IEngine engine, ZipArchive zip, IEnumerable<string> domModuleIds, ExportOptions options)

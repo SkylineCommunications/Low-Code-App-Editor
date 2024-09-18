@@ -72,6 +72,11 @@ namespace Low_Code_App_Editor_1
 			return archive.Entries.Where(entry => entry.FullName.StartsWith(entryPath)).ToList();
 		}
 
+		public static bool Exists(this ZipArchive archive, string entryPath)
+		{
+			return archive.Entries.Any(entry => entry.FullName == entryPath);
+		}
+
 		public static List<JToken> FindPropertiesWithName(this JToken token, string propertyName)
 		{
 			var scriptProperties = new List<JToken>();
