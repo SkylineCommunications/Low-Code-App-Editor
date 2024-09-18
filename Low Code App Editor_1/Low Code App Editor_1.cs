@@ -484,6 +484,13 @@ namespace Low_Code_App_Editor_1
 
 			foreach (string folder in folders)
 			{
+				var appInfoFilePath = Path.Combine(folder, "App.info.json");
+				if (!File.Exists(appInfoFilePath))
+				{
+					// If the App.info.json file is not in the folder, then it's most likely not a Low Code App
+					continue;
+				}
+
 				apps.Add(new App(folder, engine));
 			}
 
