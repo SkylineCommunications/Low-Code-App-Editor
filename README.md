@@ -57,15 +57,64 @@ You can edit some general information about the low-code app. You can import pag
 ![Editor](Documentation/EditorDialog_1_0_0_13.gif)
 
 ### Export
-It is possible to export apps. We highly recommend enabling the option to export as a package, as this will try and collect all the used custom operators and action scripts and include them in the package. 
+It is possible to export apps. This option will try and gather all the needed files for the selected apps and create a .dmapp package to install it elsewhere. It will export the create package to **C:\Skyline DataMiner\Documents\DMA_COMMON_DOCUMENTS\Low Code Apps Exports**
 
-As of version 1.0.0.5, this script will also search through the GQI queries to look for used DOM modules and include them in the package as well. 
+Below you'll find all the options available when exporting a low code app.
 
-From version 1.0.0.6 onwards, you can enable an option to also include DOM instances in the package.
+> [!NOTE]  
+> When exporting an app from one DMA to another, make sure the versions match (for example the GQI versions).
 
-From version 1.0.0.9 onwards, the used images are included in the package as well.
+#### Export Options
 
-From version 1.0.0.12 onwards, the used themes can be included as well.
+##### 1. Include Version History
+
+This will include all the previous versions made on the system. Even the ones no longer used.
+
+##### 2. Overwrite Previous Version
+
+This option allows you to update an existing app. If it's disabled it will not overwrite another app but instead rename the to be installed app to include a (1) at the end instead. That way you have both version of the app side by side.
+
+##### 3. Sync App
+
+This options will sync all the files for the app to the other agents in the DMS. Otherwise it will install the app on the agent the installer is running on.
+
+##### 4. Exclude Scripts
+
+This option will ignore all the found scripts in the app. This option is usefull when you want to create an install package and are planning on adding the scripts solutions in the manifest.xml file of the install package anyway.
+
+##### 5. Exclude DOM
+
+This will ignore the found DOM modules in the app. This option is usefull when you want to create an install package and are planning on adding the DOM modules install package anyway.
+
+##### 6. Export DOM Instances
+
+This will include the DOM instances as well as the definitions. This can be usefull but can also be very heavy on the system if there are a lot of instances.
+
+##### 7. Exclude Images
+
+This will ignore the all the found images from the exported package.
+
+##### 8. Sync Images
+
+This will sync the found images across the DMS.
+
+##### 9. Overwrite Images
+
+This option will allow the installer to overwrite an image if there is an existing one. The matching is done based on file path.
+
+##### 10. Exclude Themes
+
+This option will exclude the found themes from the exported package.
+
+##### 11. Sync Themes
+
+This options will sync the themes.json file across the DMS
+
+##### 12. Overwrite Themes
+
+This options will overwrite the existing themes if there are already matching themes found. The matching is based on the theme name.
+
+
 #### Overview of included items
  - Custom operators
  - Configured action scripts
@@ -73,9 +122,6 @@ From version 1.0.0.12 onwards, the used themes can be included as well.
  - DOM modules
  - Images
  - Themes
-
-> [!NOTE]  
-> When exporting an app from one DMA to another, make sure the versions match (for example the GQI versions).
 
 ![Editor](Documentation/ExportDialog.png)
 
