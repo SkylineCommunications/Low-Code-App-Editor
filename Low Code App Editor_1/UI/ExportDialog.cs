@@ -24,7 +24,7 @@ namespace Low_Code_App_Editor_1.UI
 			Panel.Add(ExcludeScripts, 4, 1);
 			Panel.Add(new Label("Exclude DOM:"), 5, 0);
 			Panel.Add(ExcludeDom, 5, 1);
-			Panel.Add(new Label("Export DOM Instances:"), 6, 0);
+			Panel.Add(new Label("Include DOM Instances:"), 6, 0);
 			Panel.Add(ExportDomInstances, 6, 1);
 			Panel.Add(new Label("Exclude Images:"), 7, 0);
 			Panel.Add(ExcludeImages, 7, 1);
