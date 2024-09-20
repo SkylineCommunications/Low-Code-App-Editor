@@ -86,7 +86,7 @@ This option will ignore all the found scripts in the app. This option is usefull
 
 This will ignore the found DOM modules in the app. This option is usefull when you want to create an install package and are planning on adding the DOM modules install package anyway.
 
-##### 6. Export DOM Instances
+##### 6. Include DOM Instances
 
 This will include the DOM instances as well as the definitions. This can be usefull but can also be very heavy on the system if there are a lot of instances.
 
