@@ -4,26 +4,20 @@
 
 The **Low Code App Editor** simplifies managing low-code applications within the DataMiner System. It allows you to import, export, edit, and delete apps while offering customization options for metadata, resources, and deployment settings. With features like tailored export configurations and cross-Agent synchronization, the tool streamlines app life cycle tasks, making it a practical solution for maintaining and deploying low-code apps efficiently.
 
-> [!IMPORTANT]
-> After the deploy you'll need to manually replace on of the references.
->
-> C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll needs to be C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll
-
 ![Overview](Images/LCAEditor_1_0_0_13.gif)
 
-## Installation
+## Getting Started
 
 #### Step 1: Deploy the Low Code App Editor package
 
 1. Click the **Deploy** button to deploy the package directly to your DataMiner System.
 1. Optionally, go to [admin.dataminer.services](https://admin.dataminer.services/) and verify whether the deployment was successfull.
 
-#### Step 2: Update the WebApiLib reference
+#### Step 2: Launch the script
 
-1. Connect to your DataMiner System using DataMiner Cube.
-1. Navigate to the Automation module and search for the **Low Code App Editor** script.
-1. Scroll down to the bottom and open the **Advanced** dropdown menu.
-1. In the **DLL reference** box, replace the line *C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll* with *C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll*.
+1. Open DataMiner Cube and navigate to the Automation Module.
+1. Search for the **Low Code App Editor** automation script
+1. Press the execute button
 
 ## Use Cases
 
