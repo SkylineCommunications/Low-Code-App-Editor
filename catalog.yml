@@ -1,0 +1,78 @@
+# [Required]
+# Possible values for the Catalog item that can be deployed on a DataMiner System:
+#   - Automation: If the Catalog item is a general-purpose DataMiner Automation script.
+#   - Ad Hoc Data Source: If the Catalog item is a DataMiner Automation script designed for an ad hoc data source integration.
+#   - ChatOps Extension: If the Catalog item is a DataMiner Automation script designed as a ChatOps extension.
+#   - Connector: If the Catalog item is a DataMiner XML connector.
+#   - Custom Solution: If the Catalog item is a DataMiner Solution.
+#   - Data Query: If the Catalog item is a GQI data query.
+#   - Dashboard: If the Catalog item is a DataMiner dashboard.
+#   - DevTool: If the Catalog item is a DevTool.
+#   - Product Solution: If the Catalog item is a DataMiner Solution that is an out-of-the-box solution for a specific product.
+#   - Scripted Connector: If the Catalog item is a DataMiner scripted connector.
+#   - Standard Solution: If the Catalog item is a DataMiner Solution that is an out-of-the-box solution for a specific use case or application.
+#   - System Health: If the Catalog item is intended to monitor the health of a system.
+#   - User-Defined API: If the Catalog item is a DataMiner Automation script designed as a user-defined API.
+#   - Visual Overview: If the Catalog item is a Microsoft Visio design.
+
+type: 'DevTool'
+
+# [Required] 
+# The ID of the Catalog item.
+# All registered versions for the same ID are shown together in the Catalog.
+# This ID can not be changed. 
+# If the ID is not filled in, the registration will fail with HTTP status code 500. 
+# If the ID is filled in but does not exist yet, a new Catalog item will be registered with this ID.
+# If the ID is filled in but does exist, properties of the item will be overwritten.
+#   Must be a valid GUID.
+id: 'e30c5a15-9a8f-465b-83d0-d1de77aa3396'
+
+# [Required] 
+# The human-friendly name of the Catalog item. 
+# Can be changed at any time.
+#   Max length: 100 characters.
+#   Cannot contain newlines.
+#   Cannot contain leading or trailing whitespace characters.
+title: 'Low Code App Editor'
+
+# [Optional]
+# General information about the Catalog item.
+#   Max length: 100,000 characters
+# Currently not shown in the Catalog UI but will be supported in the near future.
+short_description: 'An interactive Automation script to export, and do some general edits to the low-code apps of a DataMiner System.'
+
+# [Optional]
+# A valid URL that points to the source code.
+#   A valid URL
+#   Max length: 2048 characters
+source_code_url: 'https://github.com/SkylineCommunications/Low-Code-App-Editor'
+
+# [Optional]
+# A valid URL that points to documentation.
+#   A valid URL
+#   Max length: 2048 characters
+# Currently not shown in the Catalog UI but will be supported in the near future.
+documentation_url: 'https://github.com/SkylineCommunications/Low-Code-App-Editor/blob/main/README.md'
+
+# [Optional]
+# People who are responsible for this Catalog item. Might be developers, but this is not required.
+# Format: 'name <email> (url)'
+#   The name is required; max 256 characters.
+#   The email and url are optional, and should be in valid email/URL formats.
+owners:
+  - name: 'Arne Maes'
+    email: 'arne.maes@skyline.be'
+    url: 'https://github.com/ArneMaes0'
+
+# [Optional]
+# Tags that allow you to categorize your Catalog items.
+#   Max number of tags: 5
+#   Max length: 50 characters.
+#   Cannot contain newlines.
+#   Cannot contain leading or trailing whitespace characters.
+tags:
+  - 'Generic'
+  - 'Tool'
+  - 'Automation Script'
+  - 'Low-Code App'
+  - 'LCA'
