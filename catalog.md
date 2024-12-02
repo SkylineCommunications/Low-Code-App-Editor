@@ -4,7 +4,7 @@
 
 The **Low Code App Editor** simplifies managing low-code applications within the DataMiner System. It allows you to import, export, edit, and delete apps while offering customization options for metadata, resources, and deployment settings. With features like tailored export configurations and cross-Agent synchronization, the tool streamlines app life cycle tasks, making it a practical solution for maintaining and deploying low-code apps efficiently.
 
-![Overview](Images/LCAEditor_1_0_0_13.gif)
+![Overview](Documentation/LCAEditor_1_0_0_13.gif)
 
 ## Getting Started
 
@@ -30,7 +30,7 @@ For more details on the exporting functionality, refer to the [Low Code App Edit
 > [!NOTE]
 > To avoid compatibility issues, when exporting an app from one DMA to another, ensure that the versions match (for example GQI versions).
 
-![Editor](Images/ExportDialog.png)
+![Editor](Documentation/ExportDialog.png)
 
 ## Editing Apps
 
@@ -39,7 +39,7 @@ You can edit various aspects of your low-code app's general information in this 
 > [!CAUTION]
 > When you add users to the editors/viewers list, there is no check if the users that you add actually exist.
 
-![Editor](Images/EditorDialog_1_0_0_13.gif)
+![Editor](Documentation/EditorDialog_1_0_0_13.gif)
 
 ## Support
 
