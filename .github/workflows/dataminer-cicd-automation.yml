@@ -26,7 +26,7 @@ jobs:
       sonarCloudProjectName: SkylineCommunications_Low-Code-App-Extensions
     secrets:
       # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-      api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
+      api-key: ${{ secrets.DATAMINER_ORGANISATION_KEY }}
       sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
 
   CD:
