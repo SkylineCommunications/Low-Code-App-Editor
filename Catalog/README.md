@@ -15,9 +15,9 @@ The **Low Code App Editor** simplifies managing low-code applications within the
 
 #### Step 2: Launch the script
 
-1. Open DataMiner Cube and navigate to the Automation Module.
-1. Search for the **Low Code App Editor** automation script
-1. Press the execute button
+1. Open DataMiner Cube and navigate to the Automation module.
+1. Search for the **Low Code App Editor** script.
+1. Click the *Execute* button.
 
 ## Use Cases
 
