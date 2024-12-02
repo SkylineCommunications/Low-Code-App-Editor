@@ -52,7 +52,7 @@ source_code_url: 'https://github.com/SkylineCommunications/Low-Code-App-Editor'
 #   A valid URL
 #   Max length: 2048 characters
 # Currently not shown in the Catalog UI but will be supported in the near future.
-documentation_url: 'https://github.com/SkylineCommunications/Low-Code-App-Editor/blob/main/README.md'
+documentation_url: 'https://github.com/SkylineCommunications/Low-Code-App-Editor/blob/main/Documentation/README.md'
 
 # [Optional]
 # People who are responsible for this Catalog item. Might be developers, but this is not required.
