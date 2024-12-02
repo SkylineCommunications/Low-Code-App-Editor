@@ -2,16 +2,11 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SkylineCommunications_Low-Code-App-Extensions&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SkylineCommunications_Low-Code-App-Extensions)
 
-An interactive Automation script to import, export, and do some general edits to the low-code apps of a DataMiner System.
+The **Low Code App Editor** simplifies managing low-code applications within the DataMiner System. It allows you to import, export, edit, and delete apps while offering customization options for metadata, resources, and deployment settings. With features like tailored export configurations and cross-Agent synchronization, the tool streamlines app life cycle tasks, making it a practical solution for maintaining and deploying low-code apps efficiently.
 
 ![Overview](Documentation/LCAEditor_1_0_0_13.gif)
 
 ## Installation
-
-> [!WARNING]
-> After the install you'll need to manually replace on of the references.
->
-> C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll needs to be C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll
 
 ### Catalog 
 You can install the script through the catalog. 
@@ -22,7 +17,7 @@ You can install the script through the catalog.
 1. Click *Deploy*.
 1. Open the Automation app on your DMA.
 1. Go to the **Low Code App Editor** script.
-1. Under *Advanced* > *DLL references*, replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**.
+1. Click the *Execute* button.
 
 ### Manual
 You can do a manual install by downloading the .dmapp package file from the releases.
@@ -31,7 +26,7 @@ You can do a manual install by downloading the .dmapp package file from the rele
 1. Install the package on your DMA.
 1. Open the Automation app on your DMA.
 1. Go to the **Low Code App Editor** script.
-1. Under *Advanced* > *DLL references*, replace **C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll** with **C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll**.
+1. Click the *Execute* button.
 
 ## Features
 
