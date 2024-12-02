@@ -45,7 +45,7 @@ Revision History:
 
 DATE		VERSION		AUTHOR			COMMENTS
 
-26/07/2023	1.0.0.1		AMA, Skyline	Initial version
+02/12/2024	1.0.0.16	AMA, Skyline	Changed some of the names of the Export Dialog to be more readable.
 ****************************************************************************
 */
 
