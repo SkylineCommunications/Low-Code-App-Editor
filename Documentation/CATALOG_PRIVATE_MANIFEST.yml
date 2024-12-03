@@ -15,7 +15,7 @@
 #   - User-Defined API: If the Catalog item is a DataMiner Automation script designed as a user-defined API.
 #   - Visual Overview: If the Catalog item is a Microsoft Visio design.
 
-type: 'DevTool'
+type: 'Automation'
 
 # [Required] 
 # The ID of the Catalog item.
