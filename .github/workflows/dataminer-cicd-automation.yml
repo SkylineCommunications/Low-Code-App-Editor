@@ -16,7 +16,7 @@ on:
 jobs:
 
   CI:
-    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/Automation Master Workflow.yml@main
+    uses: SkylineCommunications/Low-Code-App-Editor/.github/workflows/Automation Master SDK Workflow.yml@main
     with:
       referenceName: ${{ github.ref_name }}
       runNumber: ${{ github.run_number }}
@@ -26,7 +26,7 @@ jobs:
       sonarCloudProjectName: SkylineCommunications_Low-Code-App-Extensions
     secrets:
       # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-      api-key: ${{ secrets.DATAMINER_ORGANISATION_KEY }}
+      api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
       sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
 
   CD:
@@ -39,23 +39,3 @@ jobs:
       referenceName: ${{ github.ref_name }}
       referenceType: ${{ github.ref_type }}
       changelogDirectory: Documentation
-
-  # # Optional 0 or More CD Jobs as needed
-  # CD:
-  #   if: github.ref_type == 'tag'
-  #   name: CD
-  #   runs-on: ubuntu-latest
-  #   needs: CI
-
-  #   steps:
-  #     - uses: actions/checkout@v3
-
-  #     - name: Skyline DataMiner Deploy Action
-  #       uses: SkylineCommunications/Skyline-DataMiner-Deploy-Action@v1
-  #       with:
-  #         # Stage deploy
-  #         stage: Deploy
-  #         # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
-  #         api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}
-  #         # Id of the uploaded artifact
-  #         artifact-id: ${{ needs.CI.outputs.artifact-id }}
