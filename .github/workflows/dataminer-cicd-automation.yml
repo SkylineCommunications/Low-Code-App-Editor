@@ -25,6 +25,8 @@ jobs:
       owner: ${{ github.repository_owner }}
       sonarCloudProjectName: SkylineCommunications_Low-Code-App-Extensions
       catalog-identifier: 95a6c64b-42e8-4b01-b154-c55fe2c0750f
+      catalog-manifest-path: Documentation/CATALOG_PRIVATE_MANIFEST.yml
+      catalog-readme-path: Documentation/CATALOG_PRIVATE_README.md
     secrets:
       # The API-key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain DataMiner System.
       api-key: ${{ secrets.DATAMINER_DEPLOY_KEY }}

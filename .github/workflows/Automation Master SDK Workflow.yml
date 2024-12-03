@@ -36,6 +36,12 @@ on:
       catalog-identifier:
         required: true
         type: string
+      catalog-manifest-path:
+        required: true
+        type: string
+      catalog-readme-path:
+        required: true
+        type: string
     secrets:
       api-key:
         required: false
@@ -357,6 +363,7 @@ jobs:
         run: |
           IFS=$'\n'
           echo dmappPackageName=$(find _DataMinerInstallationPackage -type f -name '*.dmapp') >> $GITHUB_OUTPUT
+          echo $(find _DataMinerInstallationPackage -type f -name '*.dmapp')
           unset IFS
         shell: bash  
       - name: Install .NET Tools
@@ -366,7 +373,7 @@ jobs:
 
       - name: Upload to Catalog
         id: uploadToCatalog
-        run: echo "id=$(dataminer-catalog-upload with-registration --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}" --artifact-version ${{ inputs.referenceName }} --catalog-identifier "${{ inputs.catalog-identifier }}" --branch "${{ steps.findBranch.outputs.branch }}" --dm-catalog-token ${{ secrets.api-key }})" >> $GITHUB_OUTPUT
+        run: echo "id=$(dataminer-catalog-upload with-registration --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}" --artifact-version ${{ inputs.referenceName }} --catalog-identifier "${{ inputs.catalog-identifier }}" --path-to-readme ${{ inputs.catalog-readme-path }} --path-to-catalog-yml "${{ inputs.catalog-manifest-path }}" --branch "${{ steps.findBranch.outputs.branch }}" --dm-catalog-token ${{ secrets.api-key }})" >> $GITHUB_OUTPUT
  
       - name: (Release) Set artifact Id
         run: echo "result-artifact-id=${{ steps.uploadToCatalog.outputs.id }}" >> $GITHUB_ENV
