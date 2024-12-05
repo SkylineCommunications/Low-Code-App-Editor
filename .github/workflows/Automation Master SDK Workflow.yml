@@ -366,14 +366,14 @@ jobs:
           echo $(find _DataMinerInstallationPackage -type f -name '*.dmapp')
           unset IFS
         shell: bash  
+
       - name: Install .NET Tools
         run: |
-          dotnet tool install -g Skyline.DataMiner.CICD.Tools.CatalogUpload --version 3.0.*
-          dotnet tool install -g Skyline.DataMiner.CICD.Tools.GitHubToCatalogYaml --version 1.0.*
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.CatalogUpload --version 2.0.2
 
       - name: Upload to Catalog
         id: uploadToCatalog
-        run: echo "id=$(dataminer-catalog-upload with-registration --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}" --artifact-version ${{ inputs.referenceName }} --catalog-identifier "${{ inputs.catalog-identifier }}" --path-to-readme ${{ inputs.catalog-readme-path }} --path-to-catalog-yml "${{ inputs.catalog-manifest-path }}" --branch "${{ steps.findBranch.outputs.branch }}" --dm-catalog-token ${{ secrets.api-key }})" >> $GITHUB_OUTPUT
+        run: echo "id=$(dataminer-catalog-upload with-registration --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}" --uri-sourcecode "${{ github.server_url }}/${{ github.repository }}" --artifact-version ${{ inputs.referenceName }} --branch "${{ steps.findBranch.outputs.branch }}" --dm-catalog-token ${{ secrets.api-key }})" --release-notes "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.referenceName }}" >> $GITHUB_OUTPUT
  
       - name: (Release) Set artifact Id
         run: echo "result-artifact-id=${{ steps.uploadToCatalog.outputs.id }}" >> $GITHUB_ENV
