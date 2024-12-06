@@ -4,7 +4,7 @@
 
 The **Low Code App Editor** simplifies managing low-code applications within the DataMiner System. It allows you to import, export, edit, and delete apps while offering customization options for metadata, resources, and deployment settings. With features like tailored export configurations and cross-Agent synchronization, the tool streamlines app life cycle tasks, making it a practical solution for maintaining and deploying low-code apps efficiently.
 
-![Overview](./Images/LCAEditor_1_0_0_13.gif)
+![Overview](../Images/LCAEditor_1_0_0_13.gif)
 
 ## Installation
 
@@ -49,7 +49,7 @@ You can edit some general information about the low-code app. You can import pag
 > When you add users to the editors/viewers list, there is no check if the users that you add actually exist.
 >
 
-![Editor](./Images/EditorDialog_1_0_0_13.gif)
+![Editor](../Images/EditorDialog_1_0_0_13.gif)
 
 ### Export
 It is possible to export apps. This option will try and gather all the needed files for the selected apps and create a .dmapp package to install it elsewhere. It will export the create package to **C:\Skyline DataMiner\Documents\DMA_COMMON_DOCUMENTS\Low Code Apps Exports**
@@ -118,7 +118,7 @@ This options will overwrite the existing themes if there are already matching th
  - Images
  - Themes
 
-![Editor](./Images/ExportDialog.png)
+![Editor](../Images/ExportDialog.png)
 
 ### Import 
 
@@ -127,7 +127,7 @@ Importing an exported .dmapp package can happen in a few different ways:
 #### Taskbar Utility
 If you have access to the DataMiner agent, you can copy over the .dmapp package and double click it to install it via the Taskbar Utility.
 
-![Editor](./Images/TaskbarUtility_Install.png)
+![Editor](../Images/TaskbarUtility_Install.png)
 
 #### Client test tool
 If you do not have RDP access to the DataMiner agent, but have a DataMiner user with the correct permissions. Then you can use the Client Test Tool to install packages too.
@@ -140,12 +140,12 @@ If you do not have RDP access to the DataMiner agent, but have a DataMiner user 
 1. Select the uploaded package in the list and press "Install Package"
 1. [Optional] Remove the uploaded package by clicking "Remove Uploaded Package"
 
-![Editor](./Images/AppPackages_Window.png)
+![Editor](../Images/AppPackages_Window.png)
 
 ### Delete
 You can delete apps as well.
 
-![Editor](./Images/DeleteDialog.png)
+![Editor](../Images/DeleteDialog.png)
 
 ## About DataMiner
 
