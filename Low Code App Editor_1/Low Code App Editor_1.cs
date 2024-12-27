@@ -46,6 +46,7 @@ Revision History:
 DATE		VERSION		AUTHOR			COMMENTS
 
 02/12/2024	1.0.0.16	AMA, Skyline	Changed some of the names of the Export Dialog to be more readable.
+27/12/2024	1.0.0.17	AMA, Skyline	Added extra check before casting to DMADashboardQueryData when exporting apps.
 ****************************************************************************
 */
 
