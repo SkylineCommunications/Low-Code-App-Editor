@@ -1,3 +1,6 @@
+# WARNING! DO NOT CHANGE THIS FILE.
+# If you wish to make adjustments based on the `auto-generated-catalog.yml` file, you can do so by creating a `catalog.yml` file in the root of your repository.
+# 
 # [Required]
 # Possible values for the Catalog item that can be deployed on a DataMiner System:
 #   - automationscript: If the Catalog item is a general-purpose DataMiner Automation script.
