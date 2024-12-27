@@ -38,7 +38,10 @@
 			// Search through GQI queries for custom operators
 			DataPool.ForEach(query =>
 			{
-				scripts.AddRange(FindScriptsInChild(((DMADashboardQueryData)query).Query));
+				if(query is DMADashboardQueryData gqiQuery)
+				{
+					scripts.AddRange(FindScriptsInChild(gqiQuery.Query));
+				}
 			});
 
 			// Search through pages for scripts used in actions
@@ -59,7 +62,10 @@
 			// Search through GQI queries for dom modules
 			DataPool.ForEach(query =>
 			{
-				modules.AddRange(FindDomModulesInChild(((DMADashboardQueryData)query).Query));
+				if(query is DMADashboardQueryData gqiQuery)
+				{
+					modules.AddRange(FindDomModulesInChild(gqiQuery.Query));
+				}
 			});
 
 			return modules.Distinct().ToList();
