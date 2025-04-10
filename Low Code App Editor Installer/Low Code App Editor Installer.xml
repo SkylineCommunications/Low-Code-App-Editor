@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<DMSScript options="272" xmlns="http://www.skyline.be/automation">
+	<Name>Low Code App Editor Installer</Name>
+	<Description></Description>
+	<Type>Automation</Type>
+	<Author>SKYLINE2\ArneMA</Author>
+	<CheckSets>FALSE</CheckSets>
+	<Folder></Folder>
+
+	<Protocols>
+	</Protocols>
+
+	<Memory>
+	</Memory>
+
+	<Parameters>
+	</Parameters>
+
+	<Script>
+		<Exe id="1" type="csharp">
+			<Value><![CDATA[[Project:Low Code App Editor Installer]]]></Value>
+			<Message></Message>
+		</Exe>
+	</Script>
+</DMSScript>

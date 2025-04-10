@@ -1,0 +1,34 @@
+name: Skyline Reusable Quality Workflow
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: []
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+-**"
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-**"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  CI:
+    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/DataMiner App Packages Master Workflow.yml@main
+    with:
+      configuration: Release
+      referenceName: ${{ github.ref_name }}
+      runNumber: ${{ github.run_number }}
+      referenceType: ${{ github.ref_type }}
+      repository: ${{ github.repository }}
+      owner: ${{ github.repository_owner }}
+      sonarCloudProjectName: ${{ vars.SONAR_NAME }} # Go to 'https://sonarcloud.io/projects/create' and create a project. Then create a SONAR_NAME variable with the ID of the project as mentioned in the SonarCloud project URL.
+      # solutionFilterName: "MySolutionFilter.slnf"
+    secrets:
+      dataminerToken: ${{ secrets.DATAMINER_TOKEN }} # The API key: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain organization.
+      sonarCloudToken: ${{ secrets.SONAR_TOKEN }} # The API key for access to SonarCloud.
+      # overrideCatalogDownloadToken: ${{ secrets.OVERRIDE_DATAMINER_TOKEN }} # Override on the dataminerToken for downloading Catalog items: generated in the DCP Admin app (https://admin.dataminer.services/) as authentication for a certain organization.
