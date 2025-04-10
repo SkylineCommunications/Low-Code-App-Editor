@@ -47,6 +47,7 @@ DATE		VERSION		AUTHOR			COMMENTS
 
 02/12/2024	1.0.0.16	AMA, Skyline	Changed some of the names of the Export Dialog to be more readable.
 27/12/2024	1.0.0.17	AMA, Skyline	Added extra check before casting to DMADashboardQueryData when exporting apps.
+10/04/2025	1.0.0.18	AMA, Skyline	Fixed bug where you could import pages/panels from your own app. Added duplicate functionality for pages/panels.
 ****************************************************************************
 */
 
@@ -470,7 +471,7 @@ namespace Low_Code_App_Editor_1
 		private int RefreshApp(App app)
 		{
 			var index = apps.IndexOf(app);
-			apps[index] = new App(app.Path, engine);
+			apps[index] = new App(app.Path);
 			return index;
 		}
 
@@ -492,7 +493,7 @@ namespace Low_Code_App_Editor_1
 					continue;
 				}
 
-				apps.Add(new App(folder, engine));
+				apps.Add(new App(folder));
 			}
 
 			return apps;

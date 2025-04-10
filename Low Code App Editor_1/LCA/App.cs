@@ -12,7 +12,7 @@
 
     public class App
     {
-        public App(string path, IEngine engine)
+        public App(string path)
         {
             Path = path;
 
