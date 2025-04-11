@@ -389,14 +389,14 @@ jobs:
         id: showResultPackage
         run: echo "${{ steps.findInstallationPackage.outputs.dmappPackageName }}"
 
-      - name: Publish Catalog Details
+      - name: Publish To Catalog (Metadata Only)
         if: inputs.referenceType == 'branch' && inputs.referenceName == 'main'
         shell: pwsh
         run: |
           dataminer-catalog-upload update-catalog-details `
             --path-to-catalog-yml "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/manifest.yml" `
-            --path-to-readme "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/README.md"
-            --path-to-images "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/Images"
+            --path-to-readme "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/README.md" `
+            --path-to-images "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/Images" `
             --dm-catalog-token "${{ secrets.dataminerToken }}" `
             --debug "${{ inputs.debug }}"
 
