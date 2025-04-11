@@ -1,20 +1,27 @@
 <Project>
 	<PropertyGroup>
 		<PlatformTarget>x86</PlatformTarget>
-		<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<DebugType>full</DebugType>
+		<CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-debug.ruleset</CodeAnalysisRuleSet>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<DebugType>pdbonly</DebugType>
+		<CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-release.ruleset</CodeAnalysisRuleSet>
 	</PropertyGroup>
 	<ItemGroup>
-        <AdditionalFiles Include="..\Internal\Code Analysis\stylecop.json">
+		<AdditionalFiles Include="..\Internal\Code Analysis\stylecop.json">
 			<Link>Properties\stylecop.json</Link>
 		</AdditionalFiles>
-        <Content Include="..\Internal\.editorconfig">
+		<Content Include="..\.editorconfig">
 			<Link>Properties\.editorconfig</Link>
 		</Content>
-    </ItemGroup>
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 </Project>

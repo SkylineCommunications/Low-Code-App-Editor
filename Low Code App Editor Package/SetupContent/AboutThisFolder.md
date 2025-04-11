@@ -1,0 +1,1 @@
+This directory contains files that can be used by the installer, e.g. by the install script. The files will be put in the C:\Skyline DataMiner\AppPackages\Installed\<PackageName>.<PackageVersion>\SetupContent directory.

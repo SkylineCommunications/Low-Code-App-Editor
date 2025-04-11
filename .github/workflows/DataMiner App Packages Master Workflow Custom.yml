@@ -1,0 +1,417 @@
+name: DataMiner App Packages (Custom)
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+    inputs:
+      referenceName:
+        required: true
+        type: string
+      runNumber:
+        required: true
+        type: string
+      referenceType:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+      owner:
+        required: true
+        type: string
+      sonarCloudProjectName:
+        required: true
+        type: string
+      configuration:
+        required: true
+        type: string
+      solutionFilterName:
+        required: false
+        type: string
+      debug:
+        required: false
+        type: boolean
+    secrets:
+      sonarCloudToken:
+        required: true
+      dataminerToken:
+        required: false
+      azureToken:
+        required: false
+      overrideCatalogDownloadToken:
+        required: false
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  skyline_cicd:
+    name: Skyline CICD
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Cache and Install Mono
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.0
+        with:
+          packages: mono-complete
+        
+      - name: Validate SonarCloud Project Name
+        id: validate-sonar-name
+        run: |
+          if [[ -z "${{ inputs.sonarCloudProjectName }}" ]]; then
+            echo "Error: sonarCloudProjectName is not set."
+            echo "Please create a SonarCloud project by visiting: https://sonarcloud.io/projects/create and copy the id of the project as mentioned in the sonarcloud project url."
+            repo_url="https://github.com/${{ github.repository }}/settings/variables/actions"
+            echo "Then set a SONAR_NAME variable in your repository settings: $repo_url"
+            echo "Alternatively, if you do not wish to use the Skyline Quality Gate but intend to publish your results to the catalog, you may create your workflow to include the equivalent of a dotnet publish step as shown below (remove the \\):"
+            echo "    - name: Publish"
+            echo "      env:"
+            echo "        api-key: $\{{ secrets.DATAMINER_TOKEN }}"
+            echo "      run: dotnet publish -p:Version=\"0.0.$\{{ github.run_number }}\" -p:VersionComment=\"Iterative Development\" -p:CatalogPublishKeyName=api-key"
+            exit 1
+          fi
+
+      - name: Validate SonarCloud Secret Token
+        id: validate-sonar-token
+        run: |
+          if [[ -z "${{ secrets.sonarCloudToken }}" ]]; then
+            echo "Error: sonarCloudToken is not set."
+            echo "Please create a SonarCloud token by visiting: https://sonarcloud.io/account/security and copy the value of the created token."
+            repo_url="https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Then set a SONAR_TOKEN secret in your repository settings: $repo_url"
+            echo "Alternatively, if you do not wish to use the Skyline Quality Gate but intend to publish your results to the catalog, you may create your workflow to include the equivalent of a dotnet publish step as shown below (remove the \\):"
+            echo "    - name: Publish"
+            echo "      env:"
+            echo "        api-key: $\{{ secrets.DATAMINER_TOKEN }}"
+            echo "      run: dotnet publish -p:Version=\"0.0.$\{{ github.run_number }}\" -p:VersionComment=\"Iterative Development\" -p:CatalogPublishKeyName=api-key"
+            exit 1
+          fi
+
+      - name: Validate DataMiner Secret Token
+        id: validate-dataminer-token
+        if: inputs.referenceType == 'tag'
+        run: |
+          if [[ -z "${{ secrets.dataminerToken }}" ]]; then
+            echo "Error: dataminerToken is not set. Release not possible!"
+            echo "Please create or re-use an admin.dataminer.services token by visiting: https://admin.dataminer.services/."
+            echo "Navigate to the right organization, then go to Keys and create or find a key with the permissions Register catalog items, Download catalog versions, and Read catalog items."
+            echo "Copy the value of the token."
+            repo_url="https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Then set a DATAMINER_TOKEN secret in your repository settings: $repo_url"
+            exit 1
+          fi
+
+      - name: Find .sln file
+        id: findSlnFile
+        run: |
+          if [[ -z "${{ inputs.solutionFilterName }}" ]]; then
+            echo solutionFilePath=$(find . -type f -name '*.sln') >> $GITHUB_OUTPUT
+          else
+            echo solutionFilePath=$(find . -type f -name '${{ inputs.solutionFilterName }}') >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Enable Skyline NuGet Registries
+        if: inputs.owner == 'SkylineCommunications'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AZURE_TOKEN: ${{ secrets.azureToken }}  
+        run: |
+          $sources = @(
+            @{ Name = "PrivateGitHubNugets"; URL = "https://nuget.pkg.github.com/SkylineCommunications/index.json"; Username = "USERNAME"; Password = "${{ secrets.GITHUB_TOKEN }}" },
+            @{ Name = "CloudNuGets"; URL = "https://pkgs.dev.azure.com/skyline-cloud/Cloud_NuGets/_packaging/CloudNuGet/nuget/v3/index.json"; Username = "az"; Password = "${{ secrets.azureToken }}" },
+            @{ Name = "PrivateAzureNuGets"; URL = "https://pkgs.dev.azure.com/skyline-cloud/_packaging/skyline-private-nugets/nuget/v3/index.json"; Username = "az"; Password = "${{ secrets.azureToken }}" }
+          )
+      
+          foreach ($source in $sources) {
+            if ($source.Password -ne "") {
+              Write-Host "Checking source $($source.Name)..."
+              
+              if (dotnet nuget list source | Select-String -Pattern $source.Name) {
+                Write-Host "Updating existing source $($source.Name)."
+                dotnet nuget update source $source.Name --source $source.URL --username $source.Username --password $source.Password --store-password-in-clear-text
+              } else {
+                Write-Host "Adding new source $($source.Name)."
+                dotnet nuget add source $source.URL --name $source.Name --username $source.Username --password $source.Password --store-password-in-clear-text
+              }
+            } else {
+              Write-Host "Skipping $($source.Name) because the password is not set."
+            }
+          }
+        shell: pwsh
+
+      - name: Install Tools
+        run: |
+          dotnet tool install dotnet-sonarscanner --global
+          dotnet tool install Skyline.DataMiner.CICD.Tools.Sbom --global --version 1.0.*
+          dotnet tool install -g Skyline.DataMiner.CICD.Tools.CatalogUpload --version 3.0.*
+
+      - name: Prepare SonarCloud Variables
+        id: prepSonarCloudVar
+        run: |
+          import os
+          env_file = os.getenv('GITHUB_ENV')
+          with open(env_file, "a") as myfile:
+              myfile.write("lowerCaseOwner=" + str.lower("${{ inputs.owner }}"))
+        shell: python
+
+      - name: Get SonarCloud Status
+        id: get-sonarcloud-status
+        run: |
+          sonarCloudProjectStatus=$(curl -s -u "${{ secrets.sonarCloudToken }}:" "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ inputs.sonarCloudProjectName }}")
+
+          # Check if the response is empty or not valid JSON
+          if [ -z "$sonarCloudProjectStatus" ] || ! echo "$sonarCloudProjectStatus" | jq . > /dev/null 2>&1; then
+            echo "Error: The SONAR_TOKEN is invalid, expired, or the response is empty. Please check: https://sonarcloud.io/account/security and update your token: https://github.com/${{ github.repository }}/settings/secrets/actions" >&2
+            echo "Returned response: $sonarCloudProjectStatus" >&2
+            exit 1
+          fi
+
+          # Output the JSON response if valid
+          echo "Returned response: $sonarCloudProjectStatus"
+          echo "sonarCloudProjectStatus=$sonarCloudProjectStatus" >> $GITHUB_OUTPUT
+        continue-on-error: false
+        shell: bash
+
+      - name: Trigger Initial Analysis
+        if: ${{ fromJson(steps.get-sonarcloud-status.outputs.sonarCloudProjectStatus).projectStatus.status == 'NONE' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.sonarCloudToken }}
+        run: |
+            dotnet sonarscanner begin /k:"${{ inputs.sonarCloudProjectName }}" /o:"${{ env.lowerCaseOwner }}" /d:sonar.token="${{ secrets.sonarCloudToken }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/**.trx"
+            dotnet build "${{ steps.findSlnFile.outputs.solutionFilePath }}" `
+            -p:GenerateDataMinerPackage=false `
+            --configuration ${{ inputs.configuration }} `
+            -nodeReuse:false
+            dotnet sonarscanner end /d:sonar.token="${{ secrets.sonarCloudToken }}"
+        continue-on-error: true
+        shell: pwsh
+
+      - name: Start Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.sonarCloudToken }}
+        run: |
+            dotnet sonarscanner begin /k:"${{ inputs.sonarCloudProjectName }}" /o:"${{ env.lowerCaseOwner }}" /d:sonar.token="${{ secrets.sonarCloudToken }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" /d:sonar.cs.vstest.reportsPaths="**/TestResults/**.trx"
+        continue-on-error: true
+
+      - name: Build for pre-release
+        if: inputs.referenceType == 'branch'
+        env:
+          DATAMINER_TOKEN: ${{ secrets.dataminerToken }}
+          OVERRIDE_CATALOG_DOWNLOAD_TOKEN: ${{ secrets.overrideCatalogDownloadToken }}
+        run: |
+          dotnet build "${{ steps.findSlnFile.outputs.solutionFilePath }}" `
+          -p:Version="0.0.${{ inputs.runNumber }}" `
+          --configuration ${{ inputs.configuration }} `
+          -p:CatalogPublishKeyName="DATAMINER_TOKEN" `
+          -p:CatalogDefaultDownloadKeyName="OVERRIDE_CATALOG_DOWNLOAD_TOKEN" `
+          -p:SkylineDataMinerSdkDebug="${{ inputs.debug }}" `
+          -nodeReuse:false
+        shell: pwsh
+
+      - name: Build for release
+        if: inputs.referenceType == 'tag'
+        env:
+          DATAMINER_TOKEN: ${{ secrets.dataminerToken }}
+          OVERRIDE_CATALOG_DOWNLOAD_TOKEN: ${{ secrets.overrideCatalogDownloadToken }}
+        run: |
+          dotnet build "${{ steps.findSlnFile.outputs.solutionFilePath }}" `
+          -p:Version="${{ inputs.referenceName }}" `
+          --configuration ${{ inputs.configuration }} `
+          -p:CatalogPublishKeyName="DATAMINER_TOKEN" `
+          -p:CatalogDefaultDownloadKeyName="OVERRIDE_CATALOG_DOWNLOAD_TOKEN" `
+          -p:SkylineDataMinerSdkDebug="${{ inputs.debug }}" `
+          -nodeReuse:false
+        shell: pwsh
+
+      - name: Remove WebApiLib dll
+        run: |
+          find . -type f -name "*.dmapp" -print0 | while IFS= read -r -d '' file; do
+            echo "Updating $file"
+            
+            # Create a temp directory
+            temp_dir=$(mktemp -d)
+
+            # Unzip the .dmapp file into the temp dir
+            unzip -q "$file" -d "$temp_dir"
+
+            echo "📂 Files before removal:"
+            find "$temp_dir" -type f
+
+            # Find and delete all files ending in WebApiLib.dll
+            find "$temp_dir" -type f -name "*WebApiLib.dll" -exec rm -f {} \;
+
+            echo "📂 Files after removal:"
+            find "$temp_dir" -type f
+
+            # Recreate the .dmapp file
+            (cd "$temp_dir" && zip -qr "../temp.dmapp" .)
+
+            # Move the new archive back to the original file
+            mv -f "$temp_dir/../temp.dmapp" "$file"
+
+            # Cleanup
+            rm -rf "$temp_dir"
+
+            echo "Cleaned $file"
+
+          done
+
+      - name: Unit Tests
+      # when not using MSTest you'll need to install coverlet.collector nuget in your test solutions
+        id: unit-tests
+        run: dotnet test "${{ steps.findSlnFile.outputs.solutionFilePath }}" --no-build --configuration ${{ inputs.configuration }} --filter TestCategory!=IntegrationTest --logger "trx;logfilename=unitTestResults.trx" --collect "XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover
+  
+      - name: Stop Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.sonarCloudToken }}
+        run: |
+            dotnet sonarscanner end /d:sonar.token="${{ secrets.sonarCloudToken }}"
+        continue-on-error: true
+
+      - name: SonarCloud Quality Gate check
+        if: inputs.referenceType == 'branch'
+        id: sonarcloud-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          scanMetadataReportFile: .sonarqube/out/.sonar/report-task.txt
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.sonarCloudToken }}
+
+      - name: Create package name
+        if: inputs.referenceType == 'tag'
+        id: packageName
+        run: |
+          $tempName = "${{ inputs.repository }}"
+          $safeName = $tempName -replace '[\"\/\\<>|:*?]', '_'
+          echo "name=$safeName" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
+      - name: Generate SBOM file
+        if: inputs.referenceType == 'tag'
+        run: |
+          find . -type f -name "*.dmapp" -print0 | while IFS= read -r -d '' file; do
+            echo "Generating SBOM for $file"
+            dataminer-sbom generate-and-add \
+              --solution-path "${{ steps.findSlnFile.outputs.solutionFilePath }}" \
+              --package-file "$file" \
+              --package-name "${{ steps.packageName.outputs.name }}" \
+              --package-version "${{ inputs.referenceName }}" \
+              --package-supplier "Skyline Communications" \
+              --debug "${{ inputs.debug }}"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DataMiner Installation Packages (${{ inputs.configuration }} ${{ inputs.solutionFilterName }})
+          path: |
+            **/bin/${{ inputs.configuration }}/*.dmapp
+            **/bin/${{ inputs.configuration }}/*.zip
+            **/bin/${{ inputs.configuration }}/**/*.dmapp
+            **/bin/${{ inputs.configuration }}/**/*.zip
+        continue-on-error: true
+
+      - name: Authenticate with GitHub CLI
+        if: inputs.referenceType == 'tag'
+        run: gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Find Version Comment
+        if: inputs.referenceType == 'tag'
+        id: findVersionComment
+        run: |
+          echo "Checking for release notes associated with the reference: '${{ inputs.referenceName }}'"
+      
+          # Retrieve the release note body
+          RELEASE_NOTE=$(gh release view "${{ inputs.referenceName }}" --json body -q '.body' 2>/dev/null || echo "")
+          
+          escape_special_chars() {
+            echo "$1" | sed -e 's/,/%2c/g' -e 's/"/%22/g' -e 's/;/%3b/g'
+          }
+          
+          if [[ -n "$RELEASE_NOTE" ]]; then
+            ESCAPED_RELEASE_NOTE=$(escape_special_chars "$RELEASE_NOTE")
+            echo "Release note found for '${{ inputs.referenceName }}': $ESCAPED_RELEASE_NOTE"
+            # Escape multiline string for GITHUB_OUTPUT
+            echo "versionComment<<EOF" >> $GITHUB_OUTPUT
+            echo "$ESCAPED_RELEASE_NOTE" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "No release note found for '${{ inputs.referenceName }}'. Falling back to tag or commit message."
+            VERSION_COMMENT=$(git describe --tags --exact-match 2>/dev/null || git log -1 --pretty=format:%s)
+            ESCAPED_VERSION_COMMENT=$(escape_special_chars "$VERSION_COMMENT")
+            echo "Fallback version comment: $ESCAPED_VERSION_COMMENT"
+            # Escape fallback as well
+            echo "versionComment=$ESCAPED_VERSION_COMMENT" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Find branch
+        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        id: findBranch
+        run: |
+          #!/bin/bash
+          set -e  # Exit immediately if a command exits with a non-zero status.
+          
+          # Capture the branches containing the tag and process them
+          branches="$(git branch --contains tags/${{ inputs.referenceName }} -r | grep 'origin/' | grep -vE '.*/.*/' | sed 's#origin/##' | paste -sd ",")"
+          
+          # Append to GitHub Actions output
+          echo "branch=${branches}" >> $GITHUB_OUTPUT
+        shell: bash 
+
+      - name: Target Branch
+        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        id: showResultBranch
+        run: echo "${{ steps.findBranch.outputs.branch }}"
+
+      - name: Find Installation package
+        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        id: findInstallationPackage
+        run: |
+          IFS=$'\n'
+          echo dmappPackageName=$(find _DataMinerInstallationPackage -type f -name '*.dmapp') >> $GITHUB_OUTPUT
+          unset IFS
+        shell: bash
+
+      - name: Target Installation Package
+        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        id: showResultPackage
+        run: echo "${{ steps.findInstallationPackage.outputs.dmappPackageName }}"
+
+      - name: Publish Catalog Details
+        if: inputs.referenceType == 'branch' && inputs.referenceName == 'main'
+        shell: pwsh
+        run: |
+          dataminer-catalog-upload update-catalog-details `
+            --path-to-catalog-yml "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/manifest.yml" `
+            --path-to-readme "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/README.md"
+            --path-to-images "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/Images"
+            --dm-catalog-token "${{ secrets.dataminerToken }}" `
+            --debug "${{ inputs.debug }}"
+
+      - name: Publish To Catalog
+        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        env:
+          DATAMINER_TOKEN: ${{ secrets.dataminerToken }}
+        shell: pwsh
+        run: |
+          dataminer-catalog-upload with-registration `
+            --path-to-catalog-yml "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/manifest.yml" `
+            --path-to-readme "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/README.md"
+            --path-to-images "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/Images"
+            --dm-catalog-token "${{ secrets.dataminerToken }}" `
+            --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}" 
+            --artifact-version ${{ inputs.referenceName }} 
+            --branch "${{ steps.findBranch.outputs.branch }}"
+            --debug "${{ inputs.debug }}"

@@ -1,0 +1,25 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "nuget" # See documentation for possible values
+    # directory: "/"
+    directories: # Use this if you have no .sln file in your root.
+      - "*"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # FluentAssertions equal to or higher than 8.0.0 are a different license, which requires payment
+      - dependency-name: "FluentAssertions"
+        versions: [ ">=8.0.0" ]
+        
+      # DevPacks represents the DMA on which to compile. Doesn't make sense to always be on the latest version.
+      - dependency-name: "Skyline.DataMiner.Files.*"
+      - dependency-name: "Skyline.DataMiner.Dev.*"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*" 
