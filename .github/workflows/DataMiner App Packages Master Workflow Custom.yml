@@ -233,39 +233,6 @@ jobs:
           -nodeReuse:false
         shell: pwsh
 
-      - name: Remove WebApiLib dll
-        run: |
-          find . -type f -name "*.dmapp" -print0 | while IFS= read -r -d '' file; do
-            echo "Updating $file"
-            
-            # Create a temp directory
-            temp_dir=$(mktemp -d)
-
-            # Unzip the .dmapp file into the temp dir
-            unzip -q "$file" -d "$temp_dir"
-
-            echo "📂 Files before removal:"
-            find "$temp_dir" -type f
-
-            # Find and delete all files ending in WebApiLib.dll
-            find "$temp_dir" -type f -name "*WebApiLib.dll" -exec rm -f {} \;
-
-            echo "📂 Files after removal:"
-            find "$temp_dir" -type f
-
-            # Recreate the .dmapp file
-            (cd "$temp_dir" && zip -qr "../temp.dmapp" .)
-
-            # Move the new archive back to the original file
-            mv -f "$temp_dir/../temp.dmapp" "$file"
-
-            # Cleanup
-            rm -rf "$temp_dir"
-
-            echo "Cleaned $file"
-
-          done
-
       - name: Unit Tests
       # when not using MSTest you'll need to install coverlet.collector nuget in your test solutions
         id: unit-tests
@@ -310,6 +277,46 @@ jobs:
               --package-version "${{ inputs.referenceName }}" \
               --package-supplier "Skyline Communications" \
               --debug "${{ inputs.debug }}"
+          done
+
+      - name: Remove WebApiLib dll
+        run: |
+          find . -type f -name "*.dmapp" -print0 | while IFS= read -r -d '' file; do
+            echo "Updating $file"
+            
+            # Create a temp directory
+            temp_dir=$(mktemp -d)
+
+            # Unzip the .dmapp file into the temp dir
+            unzip -q "$file" -d "$temp_dir"
+
+            echo "📂 Files before removal:"
+            find "$temp_dir" -type f
+
+            # Remove the specific line from Description.txt (if it exists)
+            desc_file=$(find "$temp_dir" -type f -name "Description.txt")
+            if [[ -f "$desc_file" ]]; then
+              echo "📝 Cleaning Description.txt at $desc_file"
+              sed -i '/ProtocolScripts\\DllImport\\WebApiLib\.dll/d' "$desc_file"
+            fi
+
+            # Find and delete all files ending in WebApiLib.dll
+            find "$temp_dir" -type f -name "*WebApiLib.dll" -exec rm -f {} \;
+
+            echo "📂 Files after removal:"
+            find "$temp_dir" -type f
+
+            # Recreate the .dmapp file
+            (cd "$temp_dir" && zip -qr "../temp.dmapp" .)
+
+            # Move the new archive back to the original file
+            mv -f "$temp_dir/../temp.dmapp" "$file"
+
+            # Cleanup
+            rm -rf "$temp_dir"
+
+            echo "Cleaned $file"
+
           done
 
       - uses: actions/upload-artifact@v4
@@ -357,7 +364,7 @@ jobs:
         shell: bash
 
       - name: Find branch
-        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        if: inputs.referenceType == 'tag'
         id: findBranch
         run: |
           #!/bin/bash
@@ -371,21 +378,21 @@ jobs:
         shell: bash 
 
       - name: Target Branch
-        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        if: inputs.referenceType == 'tag'
         id: showResultBranch
         run: echo "${{ steps.findBranch.outputs.branch }}"
 
       - name: Find Installation package
-        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        if: inputs.referenceType == 'tag'
         id: findInstallationPackage
         run: |
           IFS=$'\n'
-          echo dmappPackageName=$(find _DataMinerInstallationPackage -type f -name '*.dmapp') >> $GITHUB_OUTPUT
+          echo dmappPackageName=$(find '${{ github.workspace }}/Low Code App Editor Package' -type f -name '*.dmapp') >> $GITHUB_OUTPUT
           unset IFS
         shell: bash
 
       - name: Target Installation Package
-        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        if: inputs.referenceType == 'tag'
         id: showResultPackage
         run: echo "${{ steps.findInstallationPackage.outputs.dmappPackageName }}"
 
@@ -401,17 +408,17 @@ jobs:
             --debug "${{ inputs.debug }}"
 
       - name: Publish To Catalog
-        if: inputs.referenceType == 'tag' && inputs.referenceName == 'main'
+        if: inputs.referenceType == 'tag'
         env:
           DATAMINER_TOKEN: ${{ secrets.dataminerToken }}
         shell: pwsh
         run: |
           dataminer-catalog-upload with-registration `
             --path-to-catalog-yml "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/manifest.yml" `
-            --path-to-readme "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/README.md"
-            --path-to-images "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/Images"
+            --path-to-readme "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/README.md" `
+            --path-to-images "${{ github.workspace }}/Low Code App Editor Package/CatalogInformation/Images" `
             --dm-catalog-token "${{ secrets.dataminerToken }}" `
-            --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}" 
-            --artifact-version ${{ inputs.referenceName }} 
-            --branch "${{ steps.findBranch.outputs.branch }}"
+            --path-to-artifact "${{ steps.findInstallationPackage.outputs.dmappPackageName }}"  `
+            --artifact-version ${{ inputs.referenceName }}  `
+            --branch "${{ steps.findBranch.outputs.branch }}" `
             --debug "${{ inputs.debug }}"
