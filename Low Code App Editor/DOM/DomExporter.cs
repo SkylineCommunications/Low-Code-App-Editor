@@ -172,7 +172,7 @@
 
         private sealed class Writer : IDisposable
         {
-            private StringBuilder sb;
+            private readonly StringBuilder sb;
 
             public Writer()
             {

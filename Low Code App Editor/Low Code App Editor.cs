@@ -130,7 +130,7 @@ namespace Low_Code_App_Editor
 
 		private void InitUiData(IEngine engine)
 		{
-			InitOverview(engine);
+			InitOverview();
 			InitExport(engine);
 			InitImport();
 			InitDelete();
@@ -146,7 +146,7 @@ namespace Low_Code_App_Editor
 			InitEditorPanelsImport(engine);
 		}
 
-		private void InitOverview(IEngine engine)
+		private void InitOverview()
 		{
 			overview.Load(apps, editor, controller);
 			overview.Refresh.Pressed += (sender, e) =>

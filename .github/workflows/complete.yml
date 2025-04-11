@@ -18,7 +18,7 @@ on:
 jobs:
 
   CI:
-    uses: SkylineCommunications/_ReusableWorkflows/.github/workflows/DataMiner App Packages Master Workflow.yml@main
+    uses: SkylineCommunications/Low-Code-App-Editor/.github/workflows/DataMiner App Packages Master Workflow Custom.yml@16-duplicate-page-is-not-possible
     with:
       configuration: Release
       referenceName: ${{ github.ref_name }}

@@ -27,6 +27,7 @@
 		<Reference Include="System.Xml.Linq" />
 		<Reference Include="WebApiLib">
 			<HintPath>..\Dlls\WebApiLib.dll</HintPath>
+			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
