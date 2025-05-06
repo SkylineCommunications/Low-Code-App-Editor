@@ -48,6 +48,7 @@ DATE		VERSION		AUTHOR			COMMENTS
 02/12/2024	1.0.0.16	AMA, Skyline	Changed some of the names of the Export Dialog to be more readable.
 27/12/2024	1.0.0.17	AMA, Skyline	Added extra check before casting to DMADashboardQueryData when exporting apps.
 10/04/2025	1.0.0.18	AMA, Skyline	Fixed bug where you could import pages/panels from your own app. Added duplicate functionality for pages/panels.
+10/04/2025	1.0.0.19	AMA, Skyline	Fixed bug when deserializing to dynamic properties. Expanded the DOM module search in queries to also look in joins
 ****************************************************************************
 */
 

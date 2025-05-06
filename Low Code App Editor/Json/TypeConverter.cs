@@ -1,16 +1,25 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections;
+﻿// Ignore Spelling: App Json
 
 namespace Low_Code_App_Editor.Json
 {
+	using System;
+	using System.Collections.Generic;
+	using System.Reflection;
+
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
+
+	using Skyline.DataMiner.Web.Common.v1;
+
 	public class TypeConverter : JsonConverter
 	{
+		private Assembly WebApiLibAssembly;
+
+		public TypeConverter()
+		{
+			WebApiLibAssembly = typeof(Skyline.DataMiner.Web.Common.v1.DMAPrimitiveValue).Assembly;
+		}
+
 		/// <summary>
 		/// Determines whether this instance can convert the specified object type.
 		/// </summary>
@@ -31,7 +40,7 @@ namespace Low_Code_App_Editor.Json
 		/// <returns>The deserialized object.</returns>
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			JToken json;
+			var json = default(JToken);
 			var foundType = objectType;
 			try
 			{
@@ -47,9 +56,26 @@ namespace Low_Code_App_Editor.Json
 					for (int i = 0; i < ((JArray)json).Count; i++)
 					{
 						var itemJson = ((JArray)json)[i];
-						var typeName = Convert.ToString(itemJson["__type"]);
-						foundType = objectType.Assembly.GetType(typeName);
-						if (foundType == null) foundType = objectType;
+						if (itemJson is JValue itemValue)
+						{
+							resultArray[i] = itemValue.ToObject(foundType.GetElementType());
+							continue;
+						}
+
+						var typeName = itemJson["__type"]?.Value<string>() ?? String.Empty;
+						if (typeName.StartsWith("Skyline.DataMiner.Web") && !typeName.EndsWith(nameof(DMADynamicApplication)))
+						{
+							foundType = WebApiLibAssembly.GetType(typeName);
+						}
+						else if (!String.IsNullOrEmpty(typeName))
+						{
+							foundType = objectType.Assembly.GetType(typeName);
+						}
+						else
+						{
+							foundType = objectType;
+						}
+
 						resultArray[i] = Activator.CreateInstance(foundType);
 						serializer.Populate(itemJson.CreateReader(), resultArray[i]);
 					}
@@ -68,7 +94,15 @@ namespace Low_Code_App_Editor.Json
 					}
 					else
 					{
-						foundType = objectType.Assembly.GetType(typeName);
+						if (typeName.StartsWith("Skyline.DataMiner.Web") && !typeName.EndsWith(nameof(DMADynamicApplication)))
+						{
+							foundType = WebApiLibAssembly.GetType(typeName);
+						}
+						else
+						{
+							foundType = objectType.Assembly.GetType(typeName);
+						}
+
 						if (foundType == null) foundType = objectType;
 						object result = Activator.CreateInstance(foundType);
 						serializer.Populate(json.CreateReader(), result);

@@ -38,7 +38,7 @@
 			// Search through GQI queries for custom operators
 			DataPool.ForEach(query =>
 			{
-				if(query is DMADashboardQueryData gqiQuery)
+				if (query is DMADashboardQueryData gqiQuery)
 				{
 					scripts.AddRange(FindScriptsInChild(gqiQuery.Query));
 				}
@@ -62,7 +62,7 @@
 			// Search through GQI queries for dom modules
 			DataPool.ForEach(query =>
 			{
-				if(query is DMADashboardQueryData gqiQuery)
+				if (query is DMADashboardQueryData gqiQuery)
 				{
 					modules.AddRange(FindDomModulesInChild(gqiQuery.Query));
 				}
@@ -103,7 +103,7 @@
 				var pageRaw = File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path), "pages", $"{pageInfo.ID}.dmadb.json"));
 				var page = JsonConvert.DeserializeObject<DMADashboardConfig>(pageRaw);
 				var foundTheme = allThemes.Themes.FirstOrDefault(x => x.Name == page.ThemeKey);
-				if(foundTheme == null)
+				if (foundTheme == null)
 				{
 					continue;
 				}
@@ -143,9 +143,7 @@
 
 			foreach (var option in query.Options)
 			{
-				var module = FindDomModulesInOption(option);
-				if (module != null)
-					modules.Add(module);
+				modules.AddRange(FindDomModulesInOption(option));
 			}
 
 			modules.AddRange(FindDomModulesInChild(query.Child));
@@ -183,31 +181,40 @@
 			}
 		}
 
-		private string FindDomModulesInOption(DMAGenericInterfaceQueryChosenOption option)
+		private List<string> FindDomModulesInOption(DMAGenericInterfaceQueryChosenOption option)
 		{
+			var modules = new List<string>();
+
 			if (option == null)
 			{
-				return null;
+				return modules;
+			}
+
+			// The On is used in Joins where we need to check the other side too.
+			if (option.ID == "On" && option.Value is DMAGenericInterfaceQuery query)
+			{
+				modules.AddRange(FindDomModulesInChild(query));
 			}
 
 			if (option.Type != "string")
 			{
-				return null;
+				return modules;
 			}
 
 			if (!OptionsWithDomModules.Contains(option.ID))
 			{
-				return null;
+				return modules;
 			}
 
 			try
 			{
 				var module = Convert.ToString(option.Value.Value);
-				return module;
+				modules.Add(module);
+				return modules;
 			}
 			catch (Exception)
 			{
-				return null;
+				return new List<string>();
 			}
 		}
 	}

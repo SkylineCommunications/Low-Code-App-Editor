@@ -10,6 +10,7 @@
 		<MinimumRequiredDmVersion>10.3.3.0 - 12753</MinimumRequiredDmVersion>
 		<Version>1.0.0.18</Version>
 		<VersionComment>Initial Version</VersionComment>
+		<AssemblyVersion>2025.0430.0932.14297</AssemblyVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
