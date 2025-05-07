@@ -25,7 +25,7 @@ The **Low Code App Editor** simplifies managing low-code applications within the
 
 You can export apps using this feature, which gathers all the necessary files for the selected apps and creates a .dmapp package. This package can then be installed on another system. The exported package is saved to the following directory: C:\Skyline DataMiner\Documents\DMA_COMMON_DOCUMENTS\Low Code Apps Exports.
 
-For more details on the exporting functionality, refer to the [Low Code App Editor readme](https://github.com/SkylineCommunications/Low-Code-App-Editor/blob/main/Documentation/README.md).
+For more details on the exporting functionality, refer to the [Low Code App Editor readme](https://github.com/SkylineCommunications/Low-Code-App-Editor/blob/main/README.md).
 
 > [!NOTE]
 > To avoid compatibility issues, when exporting an app from one DMA to another, ensure that the versions match (for example GQI versions).
