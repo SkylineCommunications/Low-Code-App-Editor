@@ -53,6 +53,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
+using Low_Code_App_Editor_Package;
+
 using Skyline.AppInstaller;
 using Skyline.DataMiner.Automation;
 using Skyline.DataMiner.Net.AppPackages;
@@ -63,9 +65,8 @@ using Skyline.DataMiner.Net.AppPackages;
 internal class Script
 {
 	private const string WebApiLib_ProtocolScripts_Path = @"C:\Skyline DataMiner\ProtocolScripts\WebApiLib.dll";
+	private const string WebApiLib_ProtocolScripts_DllImport_Path = @"C:\Skyline DataMiner\ProtocolScripts\DllImport\WebApiLib.dll";
 	private const string WebApiLib_WebPages_Path = @"C:\Skyline DataMiner\Webpages\API\bin\WebApiLib.dll";
-
-	private Action<string> logger;
 
 	/// <summary>
 	///     The script entry point.
@@ -85,61 +86,13 @@ internal class Script
 			// Custom installation logic can be added here for each individual install package.
 
 			// Create a symbolic link to the WebApiLib.dll
-			logger = installer.Log;
-			CreateSymbolicLink(WebApiLib_ProtocolScripts_Path, WebApiLib_WebPages_Path);
+			Action<string> logger = installer.Log;
+			Engine.SLNetRaw.CreateSymbolicLink(WebApiLib_ProtocolScripts_Path, WebApiLib_WebPages_Path, logger);
+			Engine.SLNetRaw.CreateSymbolicLink(WebApiLib_ProtocolScripts_DllImport_Path, WebApiLib_WebPages_Path, logger);
 		}
 		catch (Exception e)
 		{
 			engine.ExitFail("Exception encountered during installation: " + e);
-		}
-	}
-
-	private void CreateSymbolicLink(string path, string targetPath)
-	{
-		var command = $"mklink \"{path}\" \"{targetPath}\"";
-		if (!File.Exists(path))
-		{
-			ExecuteCommand(command);
-			logger?.Invoke($"Created the symbolic link.");
-			return;
-		}
-
-		var attributes = File.GetAttributes(path);
-		if ((attributes & FileAttributes.ReparsePoint) != FileAttributes.ReparsePoint)
-		{
-			throw new InvalidOperationException($"Could not create the symbolic link, there is already a file named {Path.GetFileName(path)} in the {Path.GetDirectoryName(path)} folder.");
-		}
-
-		logger?.Invoke($"Symbolic link is already present, skipping this step.");
-	}
-
-	private void ExecuteCommand(string command)
-	{
-		ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + command)
-		{
-			CreateNoWindow = true, // Hides the console window
-			UseShellExecute = false, // Necessary for redirecting output
-			RedirectStandardOutput = true,
-			RedirectStandardError = true,
-			Verb = "runas", // Runs the process as administrator (needed for mklink)
-		};
-
-		using (Process process = Process.Start(processInfo))
-		{
-			string output = process.StandardOutput.ReadToEnd();
-			string error = process.StandardError.ReadToEnd();
-			process.WaitForExit();
-
-			if (!string.IsNullOrEmpty(output))
-			{
-				logger?.Invoke(output);
-			}
-
-			if (!string.IsNullOrEmpty(error))
-			{
-				logger?.Invoke(error);
-				throw new InvalidOperationException(error);
-			}
 		}
 	}
 }
