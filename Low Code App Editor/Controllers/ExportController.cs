@@ -209,7 +209,6 @@ namespace Low_Code_App_Editor.Controllers
 				zip.CreateEntryFromFile(app.PathSettings, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, "App.info.json"));
 			}
 
-			// TODO: Don't auto include the App.info.json file. Just the version folders
 			if (!options.IncludeVersions)
 			{
 				// Just include the general .json file and the latest version
