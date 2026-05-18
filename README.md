@@ -109,6 +109,9 @@ This options will sync the themes.json file across the DMS
 
 This options will overwrite the existing themes if there are already matching themes found. The matching is based on the theme name.
 
+##### 13. Include Security Settings
+
+When enabled this will keep the Security settings of the app. By default it is disabled because the editor cannot be sure the exact users and groups exists on the importing system. In case you know that both systems match, then you can enable it and the exporter will keep the settings as they are.
 
 #### Overview of included items
  - Custom operators

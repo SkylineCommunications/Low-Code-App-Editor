@@ -16,7 +16,7 @@
 	<ItemGroup>
 		<PackageReference Include="Skyline.DataMiner.Core.AppPackageInstaller" Version="4.0.0" />
 		<PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.3.3" />
-		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.1">
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -25,4 +25,46 @@
 		<!-- Exclude the project from analysis -->
 		<SonarQubeExclude>true</SonarQubeExclude>
 	</PropertyGroup>
+
+	<UsingTask TaskName="RemoveZipEntry" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$([System.IO.Path]::Combine($(MSBuildToolsPath), 'Microsoft.Build.Tasks.Core.dll'))">
+		<ParameterGroup>
+			<ZipFilePath ParameterType="System.String" Required="true" />
+			<EntryPath ParameterType="System.String" Required="true" />
+		</ParameterGroup>
+		<Task>
+			<Using Namespace="System.IO.Compression" />
+			<Using Namespace="System.Linq" />
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+				if (!System.IO.File.Exists(ZipFilePath))
+				{
+					Log.LogWarning("dmapp not found, skipping entry removal: " + ZipFilePath);
+					return true;
+				}
+				using (var archive = ZipFile.Open(ZipFilePath, ZipArchiveMode.Update))
+				{
+					var normalizedEntry = EntryPath.Replace('\\', '/');
+					var entry = archive.Entries.FirstOrDefault(e =>
+						string.Equals(e.FullName.Replace('\\', '/'), normalizedEntry, System.StringComparison.OrdinalIgnoreCase));
+					if (entry != null)
+					{
+						entry.Delete();
+						Log.LogMessage(MessageImportance.High, "Removed '" + entry.FullName + "' from " + ZipFilePath);
+					}
+					else
+					{
+						Log.LogMessage(MessageImportance.High, "Entry '" + EntryPath + "' not found in zip, nothing to remove.");
+					}
+				}
+				]]>
+			</Code>
+		</Task>
+	</UsingTask>
+
+	<Target Name="RemoveWebApiLibFromDmapp" AfterTargets="DmappCreation">
+		<PropertyGroup>
+			<DmappFile>$(MSBuildProjectDirectory)\$(OutputPath)DataMinerBuild\$(AssemblyName).$(Version).dmapp</DmappFile>
+		</PropertyGroup>
+		<RemoveZipEntry ZipFilePath="$(DmappFile)" EntryPath="AppInstallContent/Assemblies/ProtocolScripts/DllImport/WebApiLib.dll" />
+	</Target>
 </Project>

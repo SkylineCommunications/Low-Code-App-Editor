@@ -45,10 +45,11 @@ Revision History:
 
 DATE		VERSION		AUTHOR			COMMENTS
 
-02/12/2024	1.0.0.16	AMA, Skyline	Changed some of the names of the Export Dialog to be more readable.
-27/12/2024	1.0.0.17	AMA, Skyline	Added extra check before casting to DMADashboardQueryData when exporting apps.
-10/04/2025	1.0.0.18	AMA, Skyline	Fixed bug where you could import pages/panels from your own app. Added duplicate functionality for pages/panels.
-10/04/2025	1.0.0.19	AMA, Skyline	Fixed bug when deserializing to dynamic properties. Expanded the DOM module search in queries to also look in joins
+05/12/2024	1.0.1-CU15	AMA, Skyline	Changed some of the names of the Export Dialog to be more readable.
+27/12/2024	1.0.1-CU16	AMA, Skyline	Added extra check before casting to DMADashboardQueryData when exporting apps.
+10/04/2025	1.0.1-CU17	AMA, Skyline	Fixed bug where you could import pages/panels from your own app. Added duplicate functionality for pages/panels.
+06/05/2025	1.0.1-CU18	AMA, Skyline	Fixed bug when deserializing to dynamic properties. Expanded the DOM module search in queries to also look in joins
+14/05/2025	1.0.1-CU19	AMA, Skyline	Installer will now create a symbolic link to the WebApiLib.dll
 ****************************************************************************
 */
 

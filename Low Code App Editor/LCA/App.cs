@@ -11,6 +11,7 @@ namespace Low_Code_App_Editor.LCA
 
 	using Newtonsoft.Json;
 
+	using Skyline.DataMiner.Utils.SecureCoding.SecureSerialization.Json.Newtonsoft;
 	using Skyline.DataMiner.Web.Common.v1;
 
 	public class App
@@ -24,14 +25,13 @@ namespace Low_Code_App_Editor.LCA
 			},
 		};
 
-
 		public App(string path)
 		{
 			Path = path;
 
 			// Load general settings file
 			var settingsFile = File.ReadAllText(System.IO.Path.Combine(path, "App.info.json"));
-			Settings = JsonConvert.DeserializeObject<DMAApplicationVersionInfo>(settingsFile);
+			Settings = SecureNewtonsoftDeserialization.DeserializeObject<DMAApplicationVersionInfo>(settingsFile);
 
 			// Load version history
 			var versions = new string[0];
@@ -49,7 +49,7 @@ namespace Low_Code_App_Editor.LCA
 					var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
 					if (File.Exists(versionPath))
 					{
-						var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), settings);
+						var version = SecureNewtonsoftDeserialization.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), settings);
 						version.Path = versionPath;
 						Versions.Add(version);
 					}
@@ -65,7 +65,7 @@ namespace Low_Code_App_Editor.LCA
 					var versionPath = System.IO.Path.Combine(versionDirectory, "App.config.json");
 					if (File.Exists(versionPath))
 					{
-						var version = JsonConvert.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), settings);
+						var version = SecureNewtonsoftDeserialization.DeserializeObject<AppVersion>(File.ReadAllText(versionPath), settings);
 						version.Path = versionPath;
 						Versions.Add(version);
 					}

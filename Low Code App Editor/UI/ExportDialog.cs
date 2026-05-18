@@ -38,10 +38,12 @@ namespace Low_Code_App_Editor.UI
 			Panel.Add(SyncThemes, 11, 1);
 			Panel.Add(new Label("Overwrite Themes:"), 12, 0);
 			Panel.Add(OverwriteThemes, 12, 1);
-			Panel.Add(new WhiteSpace(), 13, 0);
-			Panel.Add(BackButton, 14, 0);
-			Panel.Add(ExportButton, 14, 1);
-			Panel.Add(Status, 15, 0, 1, 3);
+			Panel.Add(new Label("Include Security Settings:"), 13, 0);
+			Panel.Add(IncludeSecuritySettings, 13, 1);
+			Panel.Add(new WhiteSpace(), 14, 0);
+			Panel.Add(BackButton, 15, 0);
+			Panel.Add(ExportButton, 15, 1);
+			Panel.Add(Status, 16, 0, 1, 3);
 		}
 
 		public ICheckBoxList Apps { get; } = new CheckBoxList();
@@ -69,6 +71,8 @@ namespace Low_Code_App_Editor.UI
 		public ICheckBox SyncThemes { get; } = new CheckBox { IsChecked = true };
 
 		public ICheckBox OverwriteThemes { get; } = new CheckBox { IsChecked = true };
+
+		public ICheckBox IncludeSecuritySettings { get; } = new CheckBox();
 
 		public IButton BackButton { get; } = new Button("Back");
 

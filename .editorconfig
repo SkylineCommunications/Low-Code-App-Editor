@@ -9,3 +9,7 @@ trim_trailing_whitespace = true
 
 [*.cs]
 dotnet_sort_system_directives_first = true
+
+# Skyline ignores
+dotnet_diagnostic.SLC_SC0001.severity = none
+dotnet_diagnostic.SLC_SC0002.severity = none

@@ -27,6 +27,7 @@ namespace Low_Code_App_Editor.Controllers
 	{
 		public static readonly string ScriptPath = @"C:\Skyline DataMiner\Scripts";
 		public static readonly string DllImportPath = @"C:\Skyline DataMiner\ProtocolScripts\DllImport";
+		public static readonly string SolutionLibrariesPath = @"C:\Skyline DataMiner\ProtocolScripts\DllImport\SolutionLibraries";
 		public static readonly string LowCodeAppEditorPath = @"C:\Skyline DataMiner\Documents\Low Code App Editor";
 		public static readonly string LowCodeAppEditorExportPath = @"C:\Skyline DataMiner\Documents\DMA_COMMON_DOCUMENTS\Low Code Apps Exports";
 		public static readonly string ThemesPath = @"C:\Skyline DataMiner\dashboards\Themes.json";
@@ -47,7 +48,7 @@ namespace Low_Code_App_Editor.Controllers
 				exportPath = Path.Combine(LowCodeAppEditorExportPath, $"{apps.First().Name}_{now.ToString("yyyy-MM-dd HH-mm-ss")}_App_Export.zip");
 			}
 
-			engine.GenerateInformation($"Export Path: {exportPath}");
+			engine.Log($"Export Path: {exportPath}");
 
 			if (!Directory.Exists(Path.GetDirectoryName(exportPath)))
 			{
@@ -57,7 +58,7 @@ namespace Low_Code_App_Editor.Controllers
 			using (var fs = new FileStream(exportPath, FileMode.Create))
 			using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
 			{
-				engine.GenerateInformation($"Adding Package Information");
+				engine.Log($"Adding Package Information");
 
 				// Package Information
 				var info = apps.Count() == 1 ? PackageInfo.FromApp(apps.First()) : PackageInfo.FromApp();
@@ -85,25 +86,25 @@ namespace Low_Code_App_Editor.Controllers
 				var themes = new List<DMADashboardTheme>();
 				foreach (var app in apps)
 				{
-					engine.GenerateInformation($"Adding App");
+					engine.Log($"Adding App");
 
 					// Add the app as CompanionFiles
 					AddAppToArchive(zip, app, options);
 
-					if (options.ExcludeScripts)
+					if (!options.ExcludeScripts)
 					{
-						engine.GenerateInformation("Skipping Automation Scripts");
+						engine.Log($"Adding Scripts");
+						AddScriptsToArchive(zip, app);
 					}
 					else
 					{
-						engine.GenerateInformation($"Adding Scripts");
-						AddScriptsToArchive(zip, app);
+						engine.Log("Skipping Automation Scripts");
 					}
 
 					if (!options.ExcludeDom)
 					{
 						// Add Dom definitions
-						engine.GenerateInformation($"Adding DOM modules, for app '{app.Name}'");
+						engine.Log($"Adding DOM modules, for app '{app.Name}'");
 						domModuleIds.AddRangeUnique(app.LatestVersion.GetUsedDomModules());
 						AddDomToArchive(engine, zip, domModuleIds, options);
 					}
@@ -111,7 +112,7 @@ namespace Low_Code_App_Editor.Controllers
 					if (!options.ExcludeImages)
 					{
 						// Add Images to companion files
-						engine.GenerateInformation($"Adding Images, for app '{app.Name}'");
+						engine.Log($"Adding Images, for app '{app.Name}'");
 						images.AddRangeUnique(app.LatestVersion.GetUsedImages());
 						AddImagesToArchive(zip, images);
 					}
@@ -119,13 +120,13 @@ namespace Low_Code_App_Editor.Controllers
 					if (!options.ExcludeThemes)
 					{
 						// Add Theme
-						engine.GenerateInformation($"Adding Themes, for app '{app.Name}'");
+						engine.Log($"Adding Themes, for app '{app.Name}'");
 						themes.AddRangeUnique(app.LatestVersion.GetUsedThemes());
 						AddThemesToArchive(zip, themes);
 					}
 				}
 
-				engine.GenerateInformation($"Adding Installer code");
+				engine.Log($"Adding Installer code");
 
 				// Add custom Low Code App Installer Code
 				zip.CreateEntryFromDirectory(LowCodeAppEditorPath, "Scripts");
@@ -148,7 +149,7 @@ namespace Low_Code_App_Editor.Controllers
 					sb.AppendLine($"Script\\{Path.GetDirectoryName(file.FullName)}");
 				}
 
-				foreach(var dependency in zip.GetEntries("AppInstallContent\\Assemblies").Where(x => !x.FullName.EndsWith("\\")))
+				foreach (var dependency in zip.GetEntries("AppInstallContent\\Assemblies").Where(x => !x.FullName.EndsWith("\\")))
 				{
 					sb.AppendLine(dependency.FullName);
 				}
@@ -178,10 +179,39 @@ namespace Low_Code_App_Editor.Controllers
 			app = app ?? throw new ArgumentNullException(nameof(app));
 			options = options ?? throw new ArgumentNullException(nameof(options));
 
+			if (!options.IncludeSecuritySettings)
+			{
+				// Strip the security settings from the app settings file before adding to the archive
+				var appSettingsPath = Path.Combine(app.Path, "App.info.json");
+				var appSettings = JObject.Parse(File.ReadAllText(appSettingsPath));
+				if (appSettings.TryGetValue("Security", out var securityToken) &&
+					securityToken is JObject securitySettings)
+				{
+					if (securitySettings.TryGetValue("AllowEdit", out var allowEditToken) &&
+						allowEditToken is JArray allowEdits &&
+						allowEdits.Count > 0)
+					{
+						allowEdits.Clear();
+					}
+
+					if (securitySettings.TryGetValue("AllowView", out var allowViewToken) &&
+						allowViewToken is JArray allowViews &&
+						allowViews.Count > 0)
+					{
+						allowViews.Clear();
+					}
+				}
+
+				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, "App.info.json"), appSettings.ToString(Formatting.None, Array.Empty<JsonConverter>()));
+			}
+			else
+			{
+				zip.CreateEntryFromFile(app.PathSettings, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, "App.info.json"));
+			}
+
 			if (!options.IncludeVersions)
 			{
 				// Just include the general .json file and the latest version
-				zip.CreateEntryFromDirectory(app.Path, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID), false);
 				zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{app.LatestVersion.Version} "), Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, $"version_{app.LatestVersion.Version}"), true);
 				if (app.LatestDraftVersion != null)
 					zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{app.LatestDraftVersion.Version} "), Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestDraftVersion.ID, $"version_{app.LatestDraftVersion.Version}"), true);
@@ -189,7 +219,10 @@ namespace Low_Code_App_Editor.Controllers
 			else
 			{
 				// Include everything
-				zip.CreateEntryFromDirectory(app.Path, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID));
+				foreach (var directory in Directory.GetDirectories(app.Path, "version_*"))
+				{
+					zip.CreateEntryFromDirectory(directory, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, Path.GetFileNameWithoutExtension(directory)), true);
+				}
 			}
 		}
 
@@ -209,7 +242,7 @@ namespace Low_Code_App_Editor.Controllers
 			var scriptPath = Path.Combine(ScriptPath, scriptName);
 			if (File.Exists(scriptPath))
 			{
-				if(addedFiles.Exists(x => x == $"AppInstallContent\\Scripts\\{script}\\Script_{script}.xml"))
+				if (addedFiles.Exists(x => x == $"AppInstallContent\\Scripts\\{script}\\Script_{script}.xml"))
 				{
 					return;
 				}
@@ -262,12 +295,18 @@ namespace Low_Code_App_Editor.Controllers
 			var refParams = doc.Descendants(ns + "Param").Where(param => (string)param.Attribute("type") == "ref");
 			foreach (var reference in refParams.Select(refParam => refParam.Value))
 			{
+				if (reference.StartsWith(SolutionLibrariesPath, StringComparison.InvariantCultureIgnoreCase))
+				{
+					// DevPacks should be excluded
+					continue;
+				}
+
 				if (addedFiles.Exists(x => x == reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies")))
 				{
 					continue;
 				}
 
-				if (reference.StartsWith(DllImportPath))
+				if (reference.StartsWith(DllImportPath, StringComparison.InvariantCultureIgnoreCase))
 				{
 					zip.CreateEntryFromFile(reference, reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
 					addedFiles.Add(reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
@@ -347,6 +386,8 @@ namespace Low_Code_App_Editor.Controllers
 
 		public bool OverwriteThemes { get; set; }
 
+		public bool IncludeSecuritySettings { get; set; }
+
 		public static ExportOptions FromDialog(ExportDialog dialog)
 		{
 			return new ExportOptions
@@ -361,6 +402,9 @@ namespace Low_Code_App_Editor.Controllers
 				SyncImages = dialog.SyncImages.IsChecked,
 				ExcludeThemes = dialog.ExcludeThemes.IsChecked,
 				SyncThemes = dialog.SyncThemes.IsChecked,
+				OverrideImages = dialog.OverwriteImages.IsChecked,
+				OverwriteThemes = dialog.OverwriteThemes.IsChecked,
+				IncludeSecuritySettings = dialog.IncludeSecuritySettings.IsChecked,
 			};
 		}
 	}
