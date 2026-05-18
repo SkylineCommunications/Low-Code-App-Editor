@@ -3,6 +3,7 @@
 		<TargetFramework>net48</TargetFramework>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<RootNamespace>Install_1</RootNamespace>
+		<SonarQubeExclude>true</SonarQubeExclude>
 	</PropertyGroup>
 	<PropertyGroup>
 		<DataMinerType>AutomationScript</DataMinerType>

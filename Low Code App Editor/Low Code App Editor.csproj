@@ -16,6 +16,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.3.3" />
 		<PackageReference Include="Skyline.DataMiner.Utils.InteractiveAutomationScriptToolkit.Preview" Version="0.0.0" />
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding" Version="2.2.3" />
 		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
