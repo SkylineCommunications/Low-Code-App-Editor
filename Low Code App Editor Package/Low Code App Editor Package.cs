@@ -83,8 +83,6 @@ internal class Script
 			var installer = new AppInstaller(Engine.SLNetRaw, context);
 			installer.InstallDefaultContent();
 
-			// Custom installation logic can be added here for each individual install package.
-
 			// Create a symbolic link to the WebApiLib.dll
 			Action<string> logger = installer.Log;
 			Engine.SLNetRaw.CreateSymbolicLink(WebApiLib_ProtocolScripts_Path, WebApiLib_WebPages_Path, logger);
