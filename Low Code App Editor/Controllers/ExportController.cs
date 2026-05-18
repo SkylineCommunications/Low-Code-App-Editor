@@ -298,7 +298,7 @@ namespace Low_Code_App_Editor.Controllers
 			{
 				if (reference.StartsWith(SolutionLibrariesPath))
 				{
-					// DevPacks should be exlcluded
+					// DevPacks should be excluded
 					continue;
 				}
 
