@@ -184,17 +184,21 @@ namespace Low_Code_App_Editor.Controllers
 				// Strip the security settings from the app settings file before adding to the archive
 				var appSettingsPath = Path.Combine(app.Path, "App.info.json");
 				var appSettings = JObject.Parse(File.ReadAllText(appSettingsPath));
-				if (appSettings.ContainsKey("Security"))
+				if (appSettings.TryGetValue("Security", out var securityToken) &&
+					securityToken is JObject securitySettings)
 				{
-					var securitySettings = appSettings["Security"] as JObject;
-					if (securitySettings.ContainsKey("AllowEdit") && (securitySettings["AllowEdit"] as JArray).Count > 0)
+					if (securitySettings.TryGetValue("AllowEdit", out var allowEditToken) &&
+						allowEditToken is JArray allowEdits &&
+						allowEdits.Count > 0)
 					{
-						(securitySettings["AllowEdit"] as JArray).Clear();
+						allowEdits.Clear();
 					}
 
-					if (securitySettings.ContainsKey("AllowView") && (securitySettings["AllowView"] as JArray).Count > 0)
+					if (securitySettings.TryGetValue("AllowView", out var allowViewToken) &&
+						allowViewToken is JArray allowViews &&
+						allowViews.Count > 0)
 					{
-						(securitySettings["AllowView"] as JArray).Clear();
+						allowViews.Clear();
 					}
 				}
 
@@ -216,9 +220,9 @@ namespace Low_Code_App_Editor.Controllers
 			else
 			{
 				// Include everything
-				foreach (var version in app.Versions)
+				foreach (var directory in Directory.GetDirectories(app.Path, "version_*"))
 				{
-					zip.CreateEntryFromDirectory(Path.Combine(app.Path, $"version_{version.Version} "), Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, $"version_{version.Version}"), true);
+					zip.CreateEntryFromDirectory(directory, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, Path.GetFileNameWithoutExtension(directory), true));
 				}
 			}
 		}
