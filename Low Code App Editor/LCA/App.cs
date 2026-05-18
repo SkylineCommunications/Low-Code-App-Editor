@@ -1,7 +1,4 @@
-﻿using Skyline.DataMiner.Utils.SecureCoding.SecureSerialization.Json.Newtonsoft;
-
-using System.Collections.Generic;
-// Ignore Spelling: App LCA
+﻿// Ignore Spelling: App LCA
 
 namespace Low_Code_App_Editor.LCA
 {
@@ -14,6 +11,7 @@ namespace Low_Code_App_Editor.LCA
 
 	using Newtonsoft.Json;
 
+	using Skyline.DataMiner.Utils.SecureCoding.SecureSerialization.Json.Newtonsoft;
 	using Skyline.DataMiner.Web.Common.v1;
 
 	public class App
@@ -26,7 +24,6 @@ namespace Low_Code_App_Editor.LCA
 				new TypeConverter(),
 			},
 		};
-
 
 		public App(string path)
 		{
