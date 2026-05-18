@@ -38,7 +38,7 @@ namespace Low_Code_App_Editor.UI
 			Panel.Add(SyncThemes, 11, 1);
 			Panel.Add(new Label("Overwrite Themes:"), 12, 0);
 			Panel.Add(OverwriteThemes, 12, 1);
-			Panel.Add(new Label("Include Security Settings"), 13, 0);
+			Panel.Add(new Label("Include Security Settings:"), 13, 0);
 			Panel.Add(IncludeSecuritySettings, 13, 1);
 			Panel.Add(new WhiteSpace(), 14, 0);
 			Panel.Add(BackButton, 15, 0);

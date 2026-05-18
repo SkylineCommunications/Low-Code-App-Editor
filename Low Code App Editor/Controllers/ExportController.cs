@@ -222,7 +222,7 @@ namespace Low_Code_App_Editor.Controllers
 				// Include everything
 				foreach (var directory in Directory.GetDirectories(app.Path, "version_*"))
 				{
-					zip.CreateEntryFromDirectory(directory, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, Path.GetFileNameWithoutExtension(directory), true));
+					zip.CreateEntryFromDirectory(directory, Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, Path.GetFileNameWithoutExtension(directory)), true);
 				}
 			}
 		}
@@ -298,7 +298,7 @@ namespace Low_Code_App_Editor.Controllers
 			{
 				if (reference.StartsWith(SolutionLibrariesPath))
 				{
-					// DevPacks should be exlcluded
+					// DevPacks should be excluded
 					continue;
 				}
 
