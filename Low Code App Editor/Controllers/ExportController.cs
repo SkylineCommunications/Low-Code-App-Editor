@@ -202,7 +202,7 @@ namespace Low_Code_App_Editor.Controllers
 					}
 				}
 
-				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, "App.info.json"), appSettings.ToString(Formatting.None));
+				zip.CreateEntryFromText(Path.Combine("AppInstallContent", "CompanionFiles", "LCA", app.LatestVersion.ID, "App.info.json"), appSettings.ToString(Formatting.None, Array.Empty<JsonConverter>()));
 			}
 			else
 			{
