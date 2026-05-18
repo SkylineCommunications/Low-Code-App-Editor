@@ -295,7 +295,7 @@ namespace Low_Code_App_Editor.Controllers
 			var refParams = doc.Descendants(ns + "Param").Where(param => (string)param.Attribute("type") == "ref");
 			foreach (var reference in refParams.Select(refParam => refParam.Value))
 			{
-				if (reference.StartsWith(SolutionLibrariesPath))
+				if (reference.StartsWith(SolutionLibrariesPath, StringComparison.InvariantCultureIgnoreCase))
 				{
 					// DevPacks should be excluded
 					continue;
@@ -306,7 +306,7 @@ namespace Low_Code_App_Editor.Controllers
 					continue;
 				}
 
-				if (reference.StartsWith(DllImportPath))
+				if (reference.StartsWith(DllImportPath, StringComparison.InvariantCultureIgnoreCase))
 				{
 					zip.CreateEntryFromFile(reference, reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
 					addedFiles.Add(reference.Replace(@"C:\Skyline DataMiner", "AppInstallContent\\Assemblies"));
