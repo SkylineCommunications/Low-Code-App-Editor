@@ -50,6 +50,7 @@ DATE		VERSION		AUTHOR			COMMENTS
 10/04/2025	1.0.1-CU17	AMA, Skyline	Fixed bug where you could import pages/panels from your own app. Added duplicate functionality for pages/panels.
 06/05/2025	1.0.1-CU18	AMA, Skyline	Fixed bug when deserializing to dynamic properties. Expanded the DOM module search in queries to also look in joins
 14/05/2025	1.0.1-CU19	AMA, Skyline	Installer will now create a symbolic link to the WebApiLib.dll
+19/05/2025	1.0.1-CU20	AMA, Skyline	Added extra option to include/exclude the security settings when exporting an app.
 ****************************************************************************
 */
 
