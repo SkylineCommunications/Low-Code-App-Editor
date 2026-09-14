@@ -138,7 +138,7 @@ namespace Low_Code_App_Editor
 			InitExport(engine);
 			InitImport();
 			InitDelete();
-			InitEditor();
+			InitEditor(engine);
 			InitEditorSections(engine);
 			InitEditorEditors(engine);
 			InitEditorViewers(engine);

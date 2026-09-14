@@ -5,15 +5,20 @@
 		<RootNamespace>Install_1</RootNamespace>
 		<SonarQubeExclude>true</SonarQubeExclude>
 	</PropertyGroup>
+
 	<PropertyGroup>
 		<DataMinerType>AutomationScript</DataMinerType>
 		<GenerateDataMinerPackage>False</GenerateDataMinerPackage>
 	</PropertyGroup>
+
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="Skyline.DataMiner.Core.AppPackageInstaller" Version="4.0.0" />
-		<PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.3.3" />
-		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3">
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="Skyline.DataMiner.Core.AppPackageInstaller" />
+		<PackageReference Include="Skyline.DataMiner.Dev.Automation" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" >
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
