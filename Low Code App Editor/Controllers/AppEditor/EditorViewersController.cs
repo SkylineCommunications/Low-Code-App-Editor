@@ -8,7 +8,9 @@
 
     using Newtonsoft.Json.Linq;
 
-    public static class EditorViewersController
+	using Skyline.DataMiner.Automation;
+
+	public static class EditorViewersController
     {
         public static void Load(this AppEditorViewers editor, App app)
         {
@@ -30,7 +32,7 @@
             }
         }
 
-        public static void Save(this AppEditorViewers editor)
+        public static void Save(this AppEditorViewers editor, IEngine engine)
         {
             var settingsFile = File.ReadAllText(editor.SelectedApp.PathSettings);
             var settings = JObject.Parse(settingsFile);
@@ -39,6 +41,7 @@
                 .Select(box => ((RemoveableTextBox)box).TextBox.Text);
             settings.SelectToken("Security")["AllowView"] = new JArray(persons);
             File.WriteAllText(editor.SelectedApp.PathSettings, settings.ToString());
-        }
+			engine.GetUserConnection().SyncFile(editor.SelectedApp.PathSettings, FileSyncType.Changed, engine.Log);
+		}
     }
 }

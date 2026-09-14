@@ -51,6 +51,7 @@ DATE		VERSION		AUTHOR			COMMENTS
 06/05/2025	1.0.1-CU18	AMA, Skyline	Fixed bug when deserializing to dynamic properties. Expanded the DOM module search in queries to also look in joins
 14/05/2025	1.0.1-CU19	AMA, Skyline	Installer will now create a symbolic link to the WebApiLib.dll
 19/05/2025	1.0.1-CU20	AMA, Skyline	Added extra option to include/exclude the security settings when exporting an app.
+14/09/2026	1.0.0.19	AMA, Skyline	Sync edited files to other DMAs in the DMS when editing an app.
 ****************************************************************************
 */
 
@@ -138,15 +139,15 @@ namespace Low_Code_App_Editor
 			InitImport();
 			InitDelete();
 			InitEditor();
-			InitEditorSections();
-			InitEditorEditors();
-			InitEditorViewers();
-			InitEditorPages();
-			InitEditorPagesOverview(engine);
-			InitEditorPagesImport(engine);
-			InitEditorPanels();
-			InitEditorPanelsOverview(engine);
-			InitEditorPanelsImport(engine);
+			InitEditorSections(engine);
+			InitEditorEditors(engine);
+			InitEditorViewers(engine);
+			////InitEditorPages();
+			////InitEditorPagesOverview(engine);
+			////InitEditorPagesImport(engine);
+			////InitEditorPanels();
+			////InitEditorPanelsOverview(engine);
+			////InitEditorPanelsImport(engine);
 		}
 
 		private void InitOverview()
@@ -236,7 +237,7 @@ namespace Low_Code_App_Editor
 			};
 		}
 
-		private void InitEditor()
+		private void InitEditor(IEngine engine)
 		{
 			editor.NavigationButtons.LeftButton.Pressed += (sender, e) =>
 			{
@@ -245,7 +246,7 @@ namespace Low_Code_App_Editor
 
 			editor.NavigationButtons.RightButton.Pressed += (sender, e) =>
 			{
-				editor.Save();
+				editor.Save(engine);
 				RefreshApp(editor.SelectedApp);
 				overview.Load(apps, editor, controller);
 				controller.ShowDialog(overview);
@@ -282,7 +283,7 @@ namespace Low_Code_App_Editor
 			};
 		}
 
-		private void InitEditorSections()
+		private void InitEditorSections(IEngine engine)
 		{
 			editorSections.Navigation.LeftButton.Pressed += (sender, e) =>
 			{
@@ -291,7 +292,7 @@ namespace Low_Code_App_Editor
 
 			editorSections.Navigation.RightButton.Pressed += (sender, e) =>
 			{
-				editorSections.Save();
+				editorSections.Save(engine);
 				var index = RefreshApp(editorSections.SelectedApp);
 				editor.Load(apps[index]);
 				controller.ShowDialog(editor);
@@ -308,7 +309,7 @@ namespace Low_Code_App_Editor
 			};
 		}
 
-		private void InitEditorEditors()
+		private void InitEditorEditors(IEngine engine)
 		{
 			editorEditors.Navigation.LeftButton.Pressed += (sender, e) =>
 			{
@@ -317,7 +318,7 @@ namespace Low_Code_App_Editor
 
 			editorEditors.Navigation.RightButton.Pressed += (sender, e) =>
 			{
-				editorEditors.Save();
+				editorEditors.Save(engine);
 				var index = RefreshApp(editorEditors.SelectedApp);
 				editor.Load(apps[index]);
 				controller.ShowDialog(editor);
@@ -334,7 +335,7 @@ namespace Low_Code_App_Editor
 			};
 		}
 
-		private void InitEditorViewers()
+		private void InitEditorViewers(IEngine engine)
 		{
 			editorViewers.Navigation.LeftButton.Pressed += (sender, e) =>
 			{
@@ -343,7 +344,7 @@ namespace Low_Code_App_Editor
 
 			editorViewers.Navigation.RightButton.Pressed += (sender, e) =>
 			{
-				editorViewers.Save();
+				editorViewers.Save(engine);
 				var index = RefreshApp(editorViewers.SelectedApp);
 				editor.Load(apps[index]);
 				controller.ShowDialog(editor);

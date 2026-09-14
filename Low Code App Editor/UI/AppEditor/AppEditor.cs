@@ -16,8 +16,8 @@ namespace Low_Code_App_Editor.UI
             this.Panel.Add(Sections);
             this.Panel.Add(Editors);
             this.Panel.Add(Viewers);
-            this.Panel.Add(Pages);
-            this.Panel.Add(Panels);
+            ////this.Panel.Add(Pages);
+            ////this.Panel.Add(Panels);
             this.Panel.Add(new WhiteSpace());
             this.Panel.Add(NavigationButtons);
         }

@@ -8,9 +8,6 @@
 	<PropertyGroup>
 		<DataMinerType>AutomationScript</DataMinerType>
 		<GenerateDataMinerPackage>False</GenerateDataMinerPackage>
-		<MinimumRequiredDmVersion>10.3.3.0 - 12753</MinimumRequiredDmVersion>
-		<Version>1.0.0</Version>
-		<VersionComment>Initial Version</VersionComment>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />

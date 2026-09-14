@@ -1,7 +1,10 @@
 <Project>
 	<PropertyGroup>
 		<PlatformTarget>x86</PlatformTarget>
+		<MinimumRequiredDmVersion>10.3.3.0 - 12753</MinimumRequiredDmVersion>
+		<Version>1.0.0.19</Version>
 	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<DebugType>full</DebugType>
 		<CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-debug.ruleset</CodeAnalysisRuleSet>
@@ -10,6 +13,7 @@
 		<DebugType>pdbonly</DebugType>
 		<CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-release.ruleset</CodeAnalysisRuleSet>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<AdditionalFiles Include="..\Internal\Code Analysis\stylecop.json">
 			<Link>Properties\stylecop.json</Link>
@@ -18,6 +22,7 @@
 			<Link>Properties\.editorconfig</Link>
 		</Content>
 	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
