@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35825.156
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12105.275 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Low Code App Editor", "Low Code App Editor\Low Code App Editor.csproj", "{C6E699E7-78EC-4657-B393-D4A51AD6D035}"
 EndProject
@@ -19,6 +19,27 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Low Code App Editor Installer", "Low Code App Editor Installer\Low Code App Editor Installer.csproj", "{B6CA15E9-B75D-4DC9-8CB3-2A2DE9DC70B1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Low Code App Editor Package", "Low Code App Editor Package\Low Code App Editor Package.csproj", "{2A91452F-9A5D-46DA-91CA-6B6D8E9B93C2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB486DA1-8684-4B5F-8112-66DBA9AA614F}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.props.user = Directory.Build.props.user
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{86F4D9B6-6B35-4557-9321-7D9BC524B0F3}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{40E2F499-8A8B-4582-807B-CA879C1988E0}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\complete.yml = .github\workflows\complete.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +69,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{87EA5567-F28A-4CDE-B474-C6E727193869} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{86F4D9B6-6B35-4557-9321-7D9BC524B0F3} = {CB486DA1-8684-4B5F-8112-66DBA9AA614F}
+		{40E2F499-8A8B-4582-807B-CA879C1988E0} = {86F4D9B6-6B35-4557-9321-7D9BC524B0F3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EC406F83-44E0-4E8B-B452-88843142D31E}

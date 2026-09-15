@@ -1,7 +1,15 @@
 <Project>
 	<PropertyGroup>
 		<PlatformTarget>x86</PlatformTarget>
+		<MinimumRequiredDmVersion>10.3.3.0 - 12753</MinimumRequiredDmVersion>
+		<Version>1.0.0.19</Version>
+
+
+		<RootDir>$(MSBuildThisFileDirectory)</RootDir>
+		<ArtifactDir>$(RootDir)Artifacts</ArtifactDir>
+		<NugetDir>$(ArtifactDir)\nuget</NugetDir>
 	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<DebugType>full</DebugType>
 		<CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-debug.ruleset</CodeAnalysisRuleSet>
@@ -10,6 +18,7 @@
 		<DebugType>pdbonly</DebugType>
 		<CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-release.ruleset</CodeAnalysisRuleSet>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<AdditionalFiles Include="..\Internal\Code Analysis\stylecop.json">
 			<Link>Properties\stylecop.json</Link>
@@ -18,10 +27,13 @@
 			<Link>Properties\.editorconfig</Link>
 		</Content>
 	</ItemGroup>
+
 	<ItemGroup>
-		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+		<PackageReference Include="StyleCop.Analyzers">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
+
+	<Import Project="$(RootDir)\Directory.Build.props.user" Condition="Exists('$(RootDir)\Directory.Build.props.user')" />
 </Project>

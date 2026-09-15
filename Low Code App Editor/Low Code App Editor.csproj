@@ -4,24 +4,26 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<RootNamespace>Low_Code_App_Editor</RootNamespace>
 	</PropertyGroup>
+
 	<PropertyGroup>
 		<DataMinerType>AutomationScript</DataMinerType>
 		<GenerateDataMinerPackage>False</GenerateDataMinerPackage>
-		<MinimumRequiredDmVersion>10.3.3.0 - 12753</MinimumRequiredDmVersion>
-		<Version>1.0.0.18</Version>
-		<VersionComment>Initial Version</VersionComment>
-		<AssemblyVersion>2025.0430.0932.14297</AssemblyVersion>
 	</PropertyGroup>
+
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.3.3" />
-		<PackageReference Include="Skyline.DataMiner.Utils.InteractiveAutomationScriptToolkit.Preview" Version="0.0.0" />
-		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding" Version="2.2.3" />
-		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3">
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="Skyline.DataMiner.Dev.Automation" />
+		<PackageReference Include="Skyline.DataMiner.Utils.InteractiveAutomationScriptToolkit.Preview" />
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
+
 	<ItemGroup>
 		<Reference Include="Microsoft.CSharp" />
 		<Reference Include="System.IO.Compression" />
@@ -32,6 +34,7 @@
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
+
 	<ItemGroup>
 		<SonarQubeSetting Include="sonar.exclusions">
 			<Value>Json/TypeConverter.cs</Value>
