@@ -13,9 +13,9 @@
 		<PackageVersion Include="Skyline.DataMiner.Utils.SecureCoding" Version="2.2.3" />
 		<!--Testing-->
 		<PackageVersion Include="coverlet.collector" Version="10.0.1" />
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-		<PackageVersion Include="MSTest.TestAdapter" Version="4.2.3" />
-		<PackageVersion Include="MSTest.TestFramework" Version="4.2.3" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+		<PackageVersion Include="MSTest.TestAdapter" Version="4.4.1" />
+		<PackageVersion Include="MSTest.TestFramework" Version="4.4.1" />
 		<!--Analyzers-->
 		<PackageVersion Include="Skyline.DataMiner.CICD.CSharpAnalysis.Analyzer" Version="2.1.2" />
 		<PackageVersion Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3" />
