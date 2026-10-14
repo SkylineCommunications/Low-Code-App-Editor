@@ -6,16 +6,16 @@
 	<ItemGroup>
 		<!--Runtime-->
 		<PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageVersion Include="Skyline.DataMiner.Core.AppPackageInstaller" Version="4.0.0" />
+		<PackageVersion Include="Skyline.DataMiner.Core.AppPackageInstaller" Version="4.3.0" />
 		<PackageVersion Include="Skyline.DataMiner.Dev.Automation" Version="10.3.3" />
 		<PackageVersion Include="Skyline.DataMiner.Dev.Utils.SDM.Abstractions" Version="1.0.3" />
 		<PackageVersion Include="Skyline.DataMiner.Utils.InteractiveAutomationScriptToolkit.Preview" Version="0.0.0" />
 		<PackageVersion Include="Skyline.DataMiner.Utils.SecureCoding" Version="2.2.3" />
 		<!--Testing-->
-		<PackageVersion Include="coverlet.collector" Version="10.0.1" />
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-		<PackageVersion Include="MSTest.TestAdapter" Version="4.2.3" />
-		<PackageVersion Include="MSTest.TestFramework" Version="4.2.3" />
+		<PackageVersion Include="coverlet.collector" Version="10.1.0" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+		<PackageVersion Include="MSTest.TestAdapter" Version="4.5.1" />
+		<PackageVersion Include="MSTest.TestFramework" Version="4.5.1" />
 		<!--Analyzers-->
 		<PackageVersion Include="Skyline.DataMiner.CICD.CSharpAnalysis.Analyzer" Version="2.1.2" />
 		<PackageVersion Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3" />
